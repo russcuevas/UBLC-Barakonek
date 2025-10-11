@@ -92,21 +92,6 @@
                 Gov. Feliciano Leviste Road,
                 Lipa City, Philippines
             </p>
-
-            <div class="newsletter-form">
-              <h5>Stay Updated</h5>
-              <form action="forms/newsletter.php" method="post" class="php-email-form">
-                <div class="input-group">
-                  <input type="email" name="email" class="form-control" placeholder="Enter your email" required="">
-                  <button type="submit" class="btn-subscribe">
-                    <i class="bi bi-send"></i>
-                  </button>
-                </div>
-                <div class="loading">Loading</div>
-                <div class="error-message"></div>
-                <div class="sent-message">Thank you for subscribing!</div>
-              </form>
-            </div>
           </div>
         </div>
 

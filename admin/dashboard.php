@@ -51,6 +51,13 @@
                             </a>
                         </li>
 
+                        <li class="sidebar-item">
+                            <a href="appointments_management.php" class='sidebar-link'>
+                                <i class="bi bi-telephone-fill"></i>
+                                <span>Appointments</span>
+                            </a>
+                        </li>
+
                         <li class="sidebar-item ">
                             <a href="admin_management.php" class='sidebar-link'>
                                 <i class="bi bi-person-check-fill"></i>

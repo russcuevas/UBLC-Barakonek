@@ -52,6 +52,13 @@
                             </a>
                         </li>
 
+                        <li class="sidebar-item">
+                            <a href="appointments_management.php" class='sidebar-link'>
+                                <i class="bi bi-telephone-fill"></i>
+                                <span>Appointments</span>
+                            </a>
+                        </li>
+
                         <li class="sidebar-item active">
                             <a href="admin_management.php" class='sidebar-link'>
                                 <i class="bi bi-person-check-fill"></i>
@@ -316,34 +323,34 @@
     <script src="assets/static/js/pages/datatables.js"></script>
     <script src="assets/extensions/parsleyjs/parsley.min.js"></script>
     <script src="assets/static/js/pages/parsley.js"></script>
-<script>
-    function previewImage(event) {
-        const previewBox = document.getElementById('image-preview-box');
-        const previewImage = document.getElementById('preview-image');
-        const fileInput = event.target;
+    <script>
+        function previewImage(event) {
+            const previewBox = document.getElementById('image-preview-box');
+            const previewImage = document.getElementById('preview-image');
+            const fileInput = event.target;
 
-        if (fileInput.files && fileInput.files[0]) {
-            const reader = new FileReader();
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
 
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                previewBox.style.display = 'block';
-            };
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewBox.style.display = 'block';
+                };
 
-            reader.readAsDataURL(fileInput.files[0]);
+                reader.readAsDataURL(fileInput.files[0]);
+            }
         }
-    }
 
-    function removeImage() {
-        const previewBox = document.getElementById('image-preview-box');
-        const previewImage = document.getElementById('preview-image');
-        const fileInput = document.getElementById('profile-picture');
+        function removeImage() {
+            const previewBox = document.getElementById('image-preview-box');
+            const previewImage = document.getElementById('preview-image');
+            const fileInput = document.getElementById('profile-picture');
 
-        fileInput.value = '';
-        previewImage.src = '';
-        previewBox.style.display = 'none';
-    }
-</script>
+            fileInput.value = '';
+            previewImage.src = '';
+            previewBox.style.display = 'none';
+        }
+    </script>
 </body>
 
 </html>
