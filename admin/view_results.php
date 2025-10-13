@@ -1,47 +1,73 @@
 <?php
-// session with database connection
 include '../database/connection.php';
 session_start();
+
 if (!isset($_SESSION['admin_id'])) {
     header("Location: admin_login.php");
     exit();
 }
 
-// clean welcome sweetalert
-$fullname = $_SESSION['fullname'] ?? 'Counselor';
-$gender = $_SESSION['gender'] ?? 'male';
-$prefix = strtolower($gender) === 'female' ? 'Ms,' : 'Mr,';
-// unset welcome sweetalert
-$show_welcome = false;
-if (empty($_SESSION['welcome_shown'])) {
-    $show_welcome = true;
-    $_SESSION['welcome_shown'] = true;
+$student_id = isset($_GET['student_id']) ? intval($_GET['student_id']) : 0;
+if ($student_id <= 0) {
+    die("Invalid student ID");
 }
 
-$stmt = $conn->query("
-    SELECT 
-        r.*, 
-        s.student_no,
-        s.fullname,
-        s.email,
-        s.gender,
-        s.phone_number,
-        c.course_name,
-        d.department_name,
-        s.year_level
-    FROM tbl_results r
-    INNER JOIN (
-        SELECT student_id, MAX(taken_at) AS latest_taken_at
-        FROM tbl_results
-        GROUP BY student_id
-    ) latest ON latest.student_id = r.student_id AND latest.latest_taken_at = r.taken_at
-    JOIN tbl_students s ON s.id = r.student_id
-    JOIN tbl_course c ON s.course_id = c.id
-    JOIN tbl_department d ON c.department_id = d.id
-    ORDER BY r.taken_at DESC
+$year = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
+
+$stmtStu = $conn->prepare("SELECT fullname, student_no FROM tbl_students WHERE id = :sid");
+$stmtStu->execute(['sid' => $student_id]);
+$student = $stmtStu->fetch(PDO::FETCH_ASSOC);
+if (!$student) {
+    die("Student not found");
+}
+
+$stmt = $conn->prepare("
+    SELECT id, student_id, taken_at, depression_score, anxiety_score, stress_score,
+           depression_level, anxiety_level, stress_level
+    FROM tbl_results
+    WHERE student_id = :sid AND YEAR(taken_at) = :yr
+    ORDER BY taken_at ASC
 ");
+$stmt->execute(['sid' => $student_id, 'yr' => $year]);
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$stmtYears = $conn->prepare("
+    SELECT DISTINCT YEAR(taken_at) AS yr
+    FROM tbl_results
+    WHERE student_id = :sid
+    ORDER BY yr DESC
+");
+$stmtYears->execute(['sid' => $student_id]);
+$yearsList = $stmtYears->fetchAll(PDO::FETCH_COLUMN);
+
+$answersByTakenAt = [];
+if ($results) {
+    $stmtAns = $conn->prepare("
+        SELECT a.taken_at, q.question, a.answer_value
+        FROM tbl_answers a
+        JOIN tbl_questions q ON q.id = a.question_id
+        WHERE a.student_id = :sid
+          AND DATE_FORMAT(a.taken_at, '%Y-%m-%d %H:%i:%s') = :taken_at
+        ORDER BY q.id ASC
+    ");
+
+    foreach ($results as $result) {
+        $stmtAns->execute([
+            'sid' => $student_id,
+            'taken_at' => $result['taken_at']
+        ]);
+        $answersByTakenAt[$result['taken_at']] = $stmtAns->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+$answerLabels = [
+    0 => '0-NEVER',
+    1 => '1-SOMETIMES',
+    2 => '2-OFTEN',
+    3 => '3-ALMOST ALWAYS'
+];
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -217,13 +243,13 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="page-title">
                         <div class="row">
                             <div class="col-12 col-md-6 order-md-1 order-last">
-                                <h3>Results Management</h3>
+                                <h3>Results — <?= htmlspecialchars($student['fullname']) ?> (<?= htmlspecialchars($student['student_no']) ?>)</h2>
                             </div>
                             <div class="col-12 col-md-6 order-md-2 order-first">
                                 <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
                                     <ol class="breadcrumb">
-                                        <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Results Management</li>
+                                        <li class="breadcrumb-item"><a href="result_management.php">Results Management</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">Results — <?= htmlspecialchars($student['fullname']) ?> (<?= htmlspecialchars($student['student_no']) ?>)</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -239,45 +265,116 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </button>
                             </div>
 
-
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table" id="table1">
-                                        <thead>
+
+                                    <form method="get" action="view_results.php">
+                                        <input type="hidden" name="student_id" value="<?= $student_id ?>">
+                                        <label for="year-select">Filter by Year:</label>
+                                        <select id="year-select" name="year" onchange="this.form.submit()">
+                                            <?php foreach ($yearsList as $yr): ?>
+                                                <option value="<?= $yr ?>" <?= $yr == $year ? 'selected' : '' ?>><?= $yr ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </form>
+
+                                    <table class="table table-bordered table-striped align-middle">
+                                        <thead class="table-primary text-center">
                                             <tr>
-                                                <th>Profile</th>
-                                                <th>Student #</th>
-                                                <th>Fullname</th>
-                                                <th>Email</th>
-                                                <th>Department</th>
-                                                <th>Year-Level & Course</th>
-                                                <th>Gender</th>
-                                                <th>Phone Number</th>
-                                                <th>Actions</th>
+                                                <th>Taken</th>
+                                                <th>Depression</th>
+                                                <th>Anxiety</th>
+                                                <th>Stress</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($results as $row): ?>
+                                            <?php if (count($results) === 0): ?>
                                                 <tr>
-                                                    <td><img style="height: 50px;" src="assets/images/avatar.jpg" alt="avatar"></td>
-                                                    <td><?= htmlspecialchars($row['student_no']) ?></td>
-                                                    <td><?= htmlspecialchars($row['fullname']) ?></td>
-                                                    <td><?= htmlspecialchars($row['email']) ?></td>
-                                                    <td><?= htmlspecialchars($row['department_name']) ?></td>
-                                                    <td><?= $row['year_level'] . ' - ' . htmlspecialchars($row['course_name']) ?></td>
-                                                    <td><?= htmlspecialchars($row['gender']) ?></td>
-                                                    <td><?= htmlspecialchars($row['phone_number']) ?></td>
-                                                    <td>
-                                                        <a href="view_results.php?student_id=<?= $row['student_id'] ?>" class="btn btn-sm btn-outline-primary">View Analytics</a>
+                                                    <td colspan="8" class="text-center fst-italic py-3">
+                                                        No results for <?= htmlspecialchars($year) ?>
                                                     </td>
                                                 </tr>
-                                            <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <?php foreach ($results as $row): ?>
+                                                    <?php
+                                                    $levelColors = [
+                                                        'normal' => '#0a883eff',
+                                                        'mild' => '#2ecc71',
+                                                        'moderate' => '#f1c40f',
+                                                        'severe' => '#e67e22',
+                                                        'extremely severe' => '#e74c3c'
+                                                    ];
+                                                    ?>
+
+                                                    <tr class="align-middle">
+                                                        <td class="py-2"><?= date('M d - h:i:s A', strtotime($row['taken_at'])) ?></td>
+
+                                                        <td class="py-2 text-center">
+                                                            <span class="fw-semibold"><?= htmlspecialchars($row['depression_score']) ?></span><br>
+                                                            <small class="fw-bold" style="color: <?= $levelColors[strtolower($row['depression_level'])] ?? 'inherit' ?>;">
+                                                                <?= htmlspecialchars($row['depression_level']) ?>
+                                                            </small>
+                                                        </td>
+
+                                                        <td class="py-2 text-center">
+                                                            <span class="fw-semibold"><?= htmlspecialchars($row['anxiety_score']) ?></span><br>
+                                                            <small class="fw-bold" style="color: <?= $levelColors[strtolower($row['anxiety_level'])] ?? 'inherit' ?>;">
+                                                                <?= htmlspecialchars($row['anxiety_level']) ?>
+                                                            </small>
+                                                        </td>
+
+                                                        <td class="py-2 text-center">
+                                                            <span class="fw-semibold"><?= htmlspecialchars($row['stress_score']) ?></span><br>
+                                                            <small class="fw-bold" style="color: <?= $levelColors[strtolower($row['stress_level'])] ?? 'inherit' ?>;">
+                                                                <?= htmlspecialchars($row['stress_level']) ?>
+                                                            </small>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr>
+                                                        <td colspan="8" class="py-3">
+                                                            <strong>Answers for this assessment:</strong>
+                                                            <div class="table-responsive mt-2">
+                                                                <table class="table table-sm table-bordered mb-0 nested-table" style="width:100%">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="width: 5%;">#</th>
+                                                                            <th>Question</th>
+                                                                            <th style="width: 25%;">Answer</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <?php
+                                                                        $answers = $answersByTakenAt[$row['taken_at']] ?? [];
+                                                                        if (count($answers) === 0): ?>
+                                                                            <tr>
+                                                                                <td colspan="3" class="text-center fst-italic py-2">
+                                                                                    No answers found.
+                                                                                </td>
+                                                                            </tr>
+                                                                        <?php else: ?>
+                                                                            <?php foreach ($answers as $index => $ans): ?>
+                                                                                <tr>
+                                                                                    <td class="text-center py-1"><?= $index + 1 ?></td>
+                                                                                    <td class="py-1"><?= htmlspecialchars($ans['question']) ?></td>
+                                                                                    <td class="text-center py-1"><?= htmlspecialchars($answerLabels[$ans['answer_value']] ?? 'Unknown') ?></td>
+                                                                                </tr>
+                                                                            <?php endforeach; ?>
+                                                                        <?php endif; ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
                                         </tbody>
+
                                     </table>
+
                                 </div>
                             </div>
                         </div>
-
                     </section>
                     <!-- Basic Tables end -->
                 </div>

@@ -31,6 +31,7 @@ CREATE TABLE tbl_course (
 CREATE TABLE tbl_students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fullname VARCHAR(100) NOT NULL,
+    year_level VARCHAR(10) NOT NULL,
     department_id INT NOT NULL,
     course_id INT NOT NULL,
     gender VARCHAR(100),
@@ -136,7 +137,7 @@ VALUES
 
 
 -- 4. Students
-INSERT INTO tbl_students (fullname, department_id, course_id, gender, phone_number, email, student_no, password) VALUES
+INSERT INTO tbl_students (fullname, year_level, department_id, course_id, gender, phone_number, email, student_no, password) VALUES
 ('Russel Vincent Cuevas', 4, 12, 'Male', '0987654321', '2420580@ub.edu.ph', '2420580', '123456789'),
 ('John Dave De Leon', 4, 12, 'Male', '0123456789', '2020590@ub.edu.ph', '2020590', '123456789'),
 ('Sample Girl', 4, 12, 'Female', '0123456789', '2021590@ub.edu.ph', '2021590', '123456789'),

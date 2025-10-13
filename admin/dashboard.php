@@ -341,7 +341,7 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                                 <div class="col-12 col-md-12">
                                     <div class="card">
                                         <div class="card-header d-flex justify-content-between align-items-center">
-                                            <h4 class="mb-0">Number of Cases</h4>
+                                            <h4 class="mb-0">Reports</h4>
                                             <select id="year-selected-mental-health" class="form-select form-select-sm" style="max-width: 120px;">
                                                 <option value="2025" selected>2025</option>
                                                 <option value="2026">2026</option>
@@ -494,7 +494,7 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                         function createOrUpdateChart(containerId, categoryName) {
     const options = {
         chart: {
-            type: 'line',
+            type: 'area',
             height: 450,
             zoom: {
                 enabled: true
@@ -528,6 +528,15 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
         stroke: {
             curve: 'smooth'
         },
+            fill: {
+        type: "gradient",
+        gradient: {
+            shadeIntensity: 1,
+            opacityFrom: 0.7,
+            opacityTo: 0.2,
+            stops: [0, 90, 100]
+        }
+    },
         dataLabels: {
             enabled: false
         },
