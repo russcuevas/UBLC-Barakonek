@@ -54,7 +54,7 @@
               <h1>UBLC - <span>BARAKONEK</span></h1>
               <p style="color: black;">
                 BARAKONEK is an online platform designed to connect students with the university’s guidance counselor in a more accessible and confidential way. 
-                Through this system, students can take the <strong>DASS-21 (Depression, Anxiety, and Stress Scale)</strong> assessment to help identify their emotional well-being levels. 
+                Through this system, students can take the <strong>DASS-42 (Depression, Anxiety, and Stress Scale)</strong> assessment to help identify their emotional well-being levels. 
                 The platform aims to promote mental health awareness and provide timely support for students in need of guidance and counseling.
               </p>
             </div>

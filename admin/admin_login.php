@@ -1,3 +1,45 @@
+<?php
+// session with database connection
+include '../database/connection.php';
+session_start();
+if (isset($_SESSION['admin_id'])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
+// login function
+$error = '';
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $stmt = $conn->prepare("SELECT * FROM tbl_admin WHERE email = ?");
+    $stmt->execute([$email]);
+
+    $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($admin) {
+        if ($password === $admin['password']) {
+            $_SESSION['admin'] = $admin;
+            $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['fullname'] = $admin['fullname'];
+            $_SESSION['email'] = $admin['email'];
+            $_SESSION['phone_number'] = $admin['phone_number'];
+            $_SESSION['profile_picture'] = $admin['profile_picture'];
+            $_SESSION['gender'] = $admin['gender'];
+            $_SESSION['created_at'] = $admin['created_at'];
+            $_SESSION['updated_at'] = $admin['updated_at'];
+
+            header("Location: dashboard.php");
+            exit();
+        } else {
+            $_SESSION['error'] = "Incorrect password.";
+        }
+    } else {
+        $_SESSION['error'] = "Incorrect password.";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html>
 
@@ -58,11 +100,11 @@
                             <div class="my-form-container">
                                 <div class="my-form-inner-container">
                                     <div class="panel-header">
-                                    <h2 style="font-size: 35px;" class="text-center">
-                                        <img class="img-logo" src="assets/images/ub-logo.png" style="height: 150px; margin-right: 10px;">
-                                        <img class="img-logo" src="assets/images/copwell-logo.jpg" style="height: 150px;">
-                                        <br> BARAKONEK
-                                    </h2>
+                                        <h2 style="font-size: 35px;" class="text-center">
+                                            <img class="img-logo" src="assets/images/ub-logo.png" style="height: 150px; margin-right: 10px;">
+                                            <img class="img-logo" src="assets/images/copwell-logo.jpg" style="height: 150px;">
+                                            <br> BARAKONEK
+                                        </h2>
                                     </div>
                                     <div class="panel-body">
                                         <div class="row">
@@ -78,7 +120,14 @@
                                                 <form action="" id="loginForm" class="loginForm" method="post">
                                                     <div class="form-group">
                                                         <label for="email" class="sr-only">Email</label>
-                                                        <input type="email" class="form-control form-control-lg input-lg" id="email" name="email" placeholder="Email" required>
+                                                        <input
+                                                            type="email"
+                                                            class="form-control form-control-lg input-lg"
+                                                            id="email"
+                                                            name="email"
+                                                            placeholder="Email"
+                                                            required
+                                                            value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="password" class="sr-only">Password</label>
