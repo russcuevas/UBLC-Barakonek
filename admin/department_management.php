@@ -386,16 +386,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     <button
                                                         class="btn btn-sm btn-warning"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#editDepartmentModal<?= $department['id']; ?>">
-                                                        Edit
+                                                        data-bs-target="#editDepartmentModal<?= $department['id']; ?>"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Edit">
+                                                        <i class="bi bi-pencil-square"></i>
                                                     </button>
 
                                                     <!-- Delete Button -->
-                                                    <a href="delete_department.php?id=<?= $department['id']; ?>" class="btn btn-sm btn-danger"
-                                                        onclick="return confirm('Are you sure you want to delete this department?');">
-                                                        Delete
+                                                    <a href="delete_department.php?id=<?= $department['id']; ?>" 
+                                                    class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Are you sure you want to delete this department?');"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Delete">
+                                                        <i class="bi bi-trash"></i>
                                                     </a>
                                                 </td>
+
                                             </tr>
 
                                             <!-- Edit Department Modal -->

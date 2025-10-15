@@ -383,10 +383,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <section class="section">
                         <div class="card">
                             <div class="card-header">
-                                <button type="button" style="float: right;" class="btn btn-primary btn-sm"
+                                <button type="button" style="float: right; margin-right: 5px;" class="btn btn-primary btn-sm"
                                     data-bs-toggle="modal" data-bs-target="#addStudentModal">
                                     + Add Student
                                 </button>
+
                             </div>
 
                             <div class="modal fade text-left" id="addStudentModal" tabindex="-1" role="dialog"
@@ -549,13 +550,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     <td style="text-transform: capitalize;"><?= htmlspecialchars($student['gender']) ?></td>
                                                     <td><?= htmlspecialchars($student['phone_number']) ?></td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editStudentModal<?= $student['id'] ?>">
-                                                            Edit
+                                                        <!-- Edit Button with Modal Trigger -->
+                                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editStudentModal<?= $student['id'] ?>" data-bs-toggle="tooltip" title="Edit">
+                                                            <i class="bi bi-pencil-square"></i>
                                                         </button>
 
-                                                        <a href="delete_student.php?id=<?= $student['id'] ?>" class="btn btn-sm btn-danger"
-                                                            onclick="return confirm('Are you sure you want to delete this student?');">
-                                                            Delete
+                                                        <!-- Delete Button -->
+                                                        <a href="delete_student.php?id=<?= $student['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this student?');" data-bs-toggle="tooltip" title="Delete">
+                                                            <i class="bi bi-trash"></i>
                                                         </a>
                                                     </td>
                                                 </tr>

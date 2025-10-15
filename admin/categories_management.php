@@ -1,3 +1,38 @@
+<?php
+// session with database connection
+include '../database/connection.php';
+session_start();
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: admin_login.php");
+    exit();
+}
+
+// clean welcome sweetalert
+$fullname = $_SESSION['fullname'] ?? 'Counselor';
+$gender = $_SESSION['gender'] ?? 'male';
+$prefix = strtolower($gender) === 'female' ? 'Ms,' : 'Mr,';
+// unset welcome sweetalert
+$show_welcome = false;
+if (empty($_SESSION['welcome_shown'])) {
+    $show_welcome = true;
+    $_SESSION['welcome_shown'] = true;
+}
+
+$get_categories = $conn->query("SELECT * FROM tbl_categories");
+$category = $get_categories->fetchAll(PDO::FETCH_ASSOC);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $category_name = trim($_POST['category_name'] ?? '');
+    $stmt = $conn->prepare("INSERT INTO tbl_categories (category_name, created_at, updated_at) VALUES (?, NOW(), NOW())");
+    $stmt->execute([$category_name]);
+    $_SESSION['success'] = "Category added successfully.";
+    header('Location: categories_management.php');
+    exit();
+}
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -132,40 +167,139 @@
                             <span class="navbar-toggler-icon"></span>
                         </button>
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <ul class="navbar-nav ms-auto mb-lg-0">
+                            <ul class="navbar-nav ms-auto mb-lg-0"></ul>
 
-
-                            </ul>
                             <div class="dropdown">
                                 <a href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                     <div class="user-menu d-flex">
                                         <div class="user-name text-end me-3">
-                                            <h6 class="mb-0 text-gray-600" style="color: #752738 !important;">Russel
-                                                Vincent Cuevas</h6>
+                                            <h6 class="mb-0 text-gray-600" style="color: #752738 !important;">
+                                                <?= $_SESSION['fullname'] ?? 'Guest'; ?>
+                                            </h6>
                                             <p class="mb-0 text-sm text-gray-600" style="color: #752738 !important;">
-                                                Administrator</p>
+                                                Administrator
+                                            </p>
                                         </div>
                                         <div class="user-img d-flex align-items-center">
                                             <div class="avatar avatar-md">
-                                                <img src="./assets/compiled/jpg/1.jpg">
+                                                <img src="<?= $_SESSION['profile_picture'] ?? 'assets/images/avatar.jpg'; ?>" alt="Profile Picture">
                                             </div>
                                         </div>
                                     </div>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton"
-                                    style="min-width: 11rem;">
-                                    <li><a class="dropdown-item" href="#"><i class="icon-mid bi bi-person me-2"></i> My
-                                            Profile</a></li>
-                                    <hr class="dropdown-divider">
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" style="min-width: 11rem;">
+                                    <li>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                            <i class="icon-mid bi bi-person me-2"></i> My Profile
+                                        </a>
                                     </li>
-                                    <li><a class="dropdown-item" href="#"><i
-                                                class="icon-mid bi bi-box-arrow-left me-2"></i> Logout</a></li>
+                                    <hr class="dropdown-divider">
+                                    <li>
+                                        <a class="dropdown-item" href="logout.php"><i class="icon-mid bi bi-box-arrow-left me-2"></i> Logout</a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </nav>
             </header>
+
+            <!-- Profile Modal -->
+            <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <form action="update_profile.php" method="POST" enctype="multipart/form-data">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="profileModalLabel">My Profile</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <?php if (isset($_SESSION['admin'])): ?>
+                                    <div class="text-center mb-3">
+                                        <img id="preview" src="<?php echo htmlspecialchars($_SESSION['profile_picture'] ?? 'default.png'); ?>"
+                                            alt="Profile Picture" class="rounded-circle" width="120" height="120">
+                                    </div>
+
+                                    <!-- View Mode -->
+                                    <div id="viewProfile">
+                                        <table class="table table-bordered">
+                                            <tr>
+                                                <th>Full Name</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['fullname']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Email</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['email']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Phone</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['phone_number']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Gender</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['gender']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Created At</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['created_at']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Last Updated</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['updated_at']); ?></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <!-- Edit Mode -->
+                                    <div id="editProfile" style="display: none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-12">
+                                                <label>Profile Picture</label>
+                                                <input type="file" name="profile_picture" class="form-control" onchange="previewImage(event)">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Full Name</label>
+                                                <input type="text" name="fullname" class="form-control" value="<?php echo htmlspecialchars($_SESSION['fullname']); ?>" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Email</label>
+                                                <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>New Password</label>
+                                                <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current password">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label>Phone Number</label>
+                                                <input type="text" name="phone_number" class="form-control" value="<?php echo htmlspecialchars($_SESSION['phone_number']); ?>">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Gender</label>
+                                                <select name="gender" class="form-control" required>
+                                                    <option value="Male" <?php if ($_SESSION['gender'] == 'Male') echo 'selected'; ?>>Male</option>
+                                                    <option value="Female" <?php if ($_SESSION['gender'] == 'Female') echo 'selected'; ?>>Female</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                                <!-- Toggle buttons -->
+                                <button type="button" class="btn btn-primary" id="editBtn" onclick="toggleEdit(true)">Edit</button>
+                                <button type="submit" class="btn btn-success" id="saveBtn" style="display: none;">Save Changes</button>
+                                <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;" onclick="toggleEdit(false)">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
             <div id="main-content">
 
                 <div class="page-heading">
@@ -207,7 +341,7 @@
                                             </button>
                                         </div>
                                         <div class="modal-body">
-                                            <form class="form" data-parsley-validate enctype="multipart/form-data">
+                                            <form class="form" method="POST" action="" data-parsley-validate>
                                                 <div class="modal-body">
                                                     <div class="form-group mandatory">
                                                         <label for="category-name-column" class="form-label">Category Name</label>
@@ -241,15 +375,52 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>Sample Name</td>
-                                            <td>Created At</td>
-                                            <td>Updated At</td>
-                                            <td>
-                                                <a href="">Update</a>
-                                                <a href="">Delete</a>
-                                            </td>
-                                        </tr>
+                                        <?php foreach ($category as $categories): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($categories['category_name']) ?></td>
+                                                <td><?= htmlspecialchars($categories['created_at']) ?></td>
+                                                <td><?= htmlspecialchars($categories['updated_at']) ?></td>
+                                                <td>
+                                                    <!-- Edit Button with Modal Trigger -->
+                                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editCategoryModal<?= $categories['id'] ?>" data-bs-toggle="tooltip" title="Edit">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </button>
+
+                                                    <!-- Delete Button -->
+                                                    <a href="delete_category.php?id=<?= $categories['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this category?');" data-bs-toggle="tooltip" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Edit Category Modal -->
+                                            <div class="modal fade" id="editCategoryModal<?= $categories['id'] ?>" tabindex="-1" aria-labelledby="editCategoryModalLabel<?= $categories['id'] ?>" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <form class="form" method="POST" action="update_category.php">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="editCategoryModalLabel<?= $categories['id'] ?>">Edit Category</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+
+                                                            <div class="modal-body">
+                                                                <input type="hidden" name="id" value="<?= $categories['id'] ?>">
+                                                                <div class="form-group mandatory">
+                                                                    <label for="edit-category-name-<?= $categories['id'] ?>" class="form-label">Category Name</label>
+                                                                    <input type="text" id="edit-category-name-<?= $categories['id'] ?>" class="form-control"
+                                                                        name="category_name" value="<?= htmlspecialchars($categories['category_name']) ?>" required />
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="modal-footer">
+                                                                <button type="submit" class="btn btn-success">Update</button>
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -272,6 +443,38 @@
     <script src="assets/static/js/pages/datatables.js"></script>
     <script src="assets/extensions/parsleyjs/parsley.min.js"></script>
     <script src="assets/static/js/pages/parsley.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <?php if (isset($_SESSION['success']) || isset($_SESSION['error'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: '<?= isset($_SESSION['success']) ? 'success' : 'error' ?>',
+                    title: '<?= isset($_SESSION['success']) ? addslashes($_SESSION['success']) : addslashes($_SESSION['error']) ?>',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            });
+        </script>
+        <?php unset($_SESSION['success'], $_SESSION['error']); ?>
+    <?php endif; ?>
+
+    <script>
+        function toggleEdit(editMode) {
+            document.getElementById('viewProfile').style.display = editMode ? 'none' : 'block';
+            document.getElementById('editProfile').style.display = editMode ? 'block' : 'none';
+            document.getElementById('editBtn').style.display = editMode ? 'none' : 'inline-block';
+            document.getElementById('saveBtn').style.display = editMode ? 'inline-block' : 'none';
+            document.getElementById('cancelBtn').style.display = editMode ? 'inline-block' : 'none';
+        }
+
+        function previewImage(event) {
+            const output = document.getElementById('preview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+        }
+    </script>
 </body>
 
 </html>

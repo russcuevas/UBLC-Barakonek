@@ -333,10 +333,7 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <section class="section">
                         <div class="card">
                             <div class="card-header">
-                                <button type="button" style="float: right;" class="btn btn-primary btn-sm"
-                                    data-bs-toggle="modal" data-bs-target="#addStudentModal">
-                                    Generate PDF
-                                </button>
+
                             </div>
 
 

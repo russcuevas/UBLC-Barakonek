@@ -400,21 +400,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     <td><?= htmlspecialchars($course['course_name']) ?></td>
                                                     <td><?= htmlspecialchars($course['created_at']) ?></td>
                                                     <td><?= htmlspecialchars($course['updated_at']) ?></td>
-                                                    <td>
-                                                        <!-- Edit Button with Modal Trigger -->
-                                                        <button
-                                                            class="btn btn-sm btn-warning"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#editCourseModal<?= $course['id']; ?>">
-                                                            Edit
-                                                        </button>
+<td>
+    <!-- Edit Button with Modal Trigger -->
+    <button
+        class="btn btn-sm btn-warning"
+        data-bs-toggle="modal"
+        data-bs-target="#editCourseModal<?= $course['id']; ?>"
+        data-bs-toggle="tooltip"
+        title="Edit">
+        <i class="bi bi-pencil-square"></i>
+    </button>
 
-                                                        <!-- Delete Button -->
-                                                        <a href="delete_course.php?id=<?= $course['id']; ?>" class="btn btn-sm btn-danger"
-                                                            onclick="return confirm('Are you sure you want to delete this course?');">
-                                                            Delete
-                                                        </a>
-                                                    </td>
+    <!-- Delete Button -->
+    <a href="delete_course.php?id=<?= $course['id']; ?>" 
+       class="btn btn-sm btn-danger"
+       onclick="return confirm('Are you sure you want to delete this course?');"
+       data-bs-toggle="tooltip"
+       title="Delete">
+        <i class="bi bi-trash"></i>
+    </a>
+</td>
+
                                                 </tr>
                                                 <!-- Edit Course Modal -->
                                                 <div class="modal fade" id="editCourseModal<?= $course['id'] ?>" tabindex="-1" aria-labelledby="editModalLabel<?= $course['id'] ?>" aria-hidden="true">

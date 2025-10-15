@@ -481,14 +481,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                         <button type="button"
                                                             class="btn btn-sm btn-warning"
                                                             data-bs-toggle="modal"
-                                                            data-bs-target="#editModal<?= $admin['id'] ?>">
-                                                            Edit
+                                                            data-bs-target="#editModal<?= $admin['id'] ?>"
+                                                            data-bs-toggle="tooltip"
+                                                            title="Edit">
+                                                            <i class="bi bi-pencil-square"></i>
                                                         </button>
 
                                                         <!-- Delete Button -->
-                                                        <a href="delete_admin.php?id=<?= $admin['id'] ?>" class="btn btn-sm btn-danger"
-                                                            onclick="return confirm('Are you sure you want to delete this admin?');">
-                                                            Delete
+                                                        <a href="delete_admin.php?id=<?= $admin['id'] ?>"
+                                                            class="btn btn-sm btn-danger"
+                                                            onclick="return confirm('Are you sure you want to delete this admin?');"
+                                                            data-bs-toggle="tooltip"
+                                                            title="Delete">
+                                                            <i class="bi bi-trash"></i>
                                                         </a>
                                                     </td>
                                                 </tr>
