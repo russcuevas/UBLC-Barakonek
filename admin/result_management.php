@@ -199,7 +199,9 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" style="min-width: 11rem;">
                                     <li>
-                                        <a class="dropdown-item" href="#"><i class="icon-mid bi bi-person me-2"></i> My Profile</a>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                            <i class="icon-mid bi bi-person me-2"></i> My Profile
+                                        </a>
                                     </li>
                                     <hr class="dropdown-divider">
                                     <li>
@@ -211,6 +213,104 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 </nav>
             </header>
+
+                        <!-- Profile Modal -->
+            <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <form action="update_profile.php" method="POST" enctype="multipart/form-data">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="profileModalLabel">My Profile</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <?php if (isset($_SESSION['admin'])): ?>
+                                    <div class="text-center mb-3">
+                                        <img id="preview" src="<?php echo htmlspecialchars($_SESSION['profile_picture'] ?? 'default.png'); ?>"
+                                            alt="Profile Picture" class="rounded-circle" width="120" height="120">
+                                    </div>
+
+                                    <!-- View Mode -->
+                                    <div id="viewProfile">
+                                        <table class="table table-bordered">
+                                            <tr>
+                                                <th>Full Name</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['fullname']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Email</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['email']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Phone</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['phone_number']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Gender</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['gender']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Created At</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['created_at']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Last Updated</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['updated_at']); ?></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <!-- Edit Mode -->
+                                    <div id="editProfile" style="display: none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-12">
+                                                <label>Profile Picture</label>
+                                                <input type="file" name="profile_picture" class="form-control" onchange="previewImage(event)">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Full Name</label>
+                                                <input type="text" name="fullname" class="form-control" value="<?php echo htmlspecialchars($_SESSION['fullname']); ?>" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Email</label>
+                                                <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>New Password</label>
+                                                <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current password">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label>Phone Number</label>
+                                                <input type="text" name="phone_number" class="form-control" value="<?php echo htmlspecialchars($_SESSION['phone_number']); ?>">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Gender</label>
+                                                <select name="gender" class="form-control" required>
+                                                    <option value="Male" <?php if ($_SESSION['gender'] == 'Male') echo 'selected'; ?>>Male</option>
+                                                    <option value="Female" <?php if ($_SESSION['gender'] == 'Female') echo 'selected'; ?>>Female</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                                <!-- Toggle buttons -->
+                                <button type="button" class="btn btn-primary" id="editBtn" onclick="toggleEdit(true)">Edit</button>
+                                <button type="submit" class="btn btn-success" id="saveBtn" style="display: none;">Save Changes</button>
+                                <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;" onclick="toggleEdit(false)">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <div id="main-content">
 
                 <div class="page-heading">
@@ -268,7 +368,7 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     <td><?= htmlspecialchars($row['gender']) ?></td>
                                                     <td><?= htmlspecialchars($row['phone_number']) ?></td>
                                                     <td>
-                                                        <a href="view_results.php?student_id=<?= $row['student_id'] ?>" class="btn btn-sm btn-outline-primary">View Analytics</a>
+                                                        <a href="view_results.php?student_id=<?= $row['student_id'] ?>" class="btn btn-sm btn-outline-primary">View Results</a>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -294,6 +394,38 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="assets/static/js/pages/datatables.js"></script>
     <script src="assets/extensions/parsleyjs/parsley.min.js"></script>
     <script src="assets/static/js/pages/parsley.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SWEETALERT SUCCESS -->
+    <?php if (isset($_SESSION['success']) || isset($_SESSION['error'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: '<?= isset($_SESSION['success']) ? 'success' : 'error' ?>',
+                    title: '<?= isset($_SESSION['success']) ? addslashes($_SESSION['success']) : addslashes($_SESSION['error']) ?>',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            });
+        </script>
+        <?php unset($_SESSION['success'], $_SESSION['error']); ?>
+    <?php endif; ?>
+    <script>
+        function toggleEdit(editMode) {
+            document.getElementById('viewProfile').style.display = editMode ? 'none' : 'block';
+            document.getElementById('editProfile').style.display = editMode ? 'block' : 'none';
+            document.getElementById('editBtn').style.display = editMode ? 'none' : 'inline-block';
+            document.getElementById('saveBtn').style.display = editMode ? 'inline-block' : 'none';
+            document.getElementById('cancelBtn').style.display = editMode ? 'inline-block' : 'none';
+        }
+
+        function previewImage(event) {
+            const output = document.getElementById('preview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+        }
+    </script>
 </body>
 
 </html>

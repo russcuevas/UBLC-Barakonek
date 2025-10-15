@@ -1,3 +1,77 @@
+<?php
+// session with database connection
+include '../database/connection.php';
+session_start();
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: admin_login.php");
+    exit();
+}
+
+// clean welcome sweetalert
+$fullname = $_SESSION['fullname'] ?? 'Counselor';
+$gender = $_SESSION['gender'] ?? 'male';
+$prefix = strtolower($gender) === 'female' ? 'Ms,' : 'Mr,';
+// unset welcome sweetalert
+$show_welcome = false;
+if (empty($_SESSION['welcome_shown'])) {
+    $show_welcome = true;
+    $_SESSION['welcome_shown'] = true;
+}
+
+$get_admin = $conn->query("SELECT * FROM tbl_admin");
+$admins = $get_admin->fetchAll(PDO::FETCH_ASSOC);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $fullname = trim($_POST['fullname'] ?? '');
+    $gender = $_POST['gender'] ?? '';
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $phone_number = trim($_POST['phone_number'] ?? '');
+
+    $checkEmailStmt = $conn->prepare("SELECT id FROM tbl_admin WHERE email = ?");
+    $checkEmailStmt->execute([$email]);
+
+    if ($checkEmailStmt->rowCount() > 0) {
+        $_SESSION['error'] = "Email already exists. Please use a different one.";
+        header("Location: admin_management.php");
+        exit();
+    }
+
+
+    $profile_picture_path = null;
+    if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = 'profile/';
+        $fileTmpPath = $_FILES['profile_picture']['tmp_name'];
+        $fileName = basename($_FILES['profile_picture']['name']);
+        $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $allowedExt = ['jpg', 'jpeg', 'png', 'gif'];
+
+        if (!in_array($fileExt, $allowedExt)) {
+            $_SESSION['error'] = "Only JPG, JPEG, PNG, and GIF files are allowed.";
+            header("Location: admin_management.php");
+            exit();
+        }
+        $newFileName = uniqid('admin_', true) . '.' . $fileExt;
+        $destPath = $uploadDir . $newFileName;
+        if (!move_uploaded_file($fileTmpPath, $destPath)) {
+            $_SESSION['error'] = "Failed to upload profile picture.";
+            header("Location: admin_management.php");
+            exit();
+        }
+
+        $profile_picture_path = 'profile/' . $newFileName;
+    }
+
+    $stmt = $conn->prepare("INSERT INTO tbl_admin (fullname, gender, email, password, phone_number, profile_picture) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$fullname, $gender, $email, $password, $phone_number, $profile_picture_path]);
+
+    $_SESSION['success'] = "Admin added successfully.";
+    header("Location: admin_management.php");
+    exit();
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -131,40 +205,138 @@
                             <span class="navbar-toggler-icon"></span>
                         </button>
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <ul class="navbar-nav ms-auto mb-lg-0">
+                            <ul class="navbar-nav ms-auto mb-lg-0"></ul>
 
-
-                            </ul>
                             <div class="dropdown">
                                 <a href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                     <div class="user-menu d-flex">
                                         <div class="user-name text-end me-3">
-                                            <h6 class="mb-0 text-gray-600" style="color: #752738 !important;">Russel
-                                                Vincent Cuevas</h6>
+                                            <h6 class="mb-0 text-gray-600" style="color: #752738 !important;">
+                                                <?= $_SESSION['fullname'] ?? 'Guest'; ?>
+                                            </h6>
                                             <p class="mb-0 text-sm text-gray-600" style="color: #752738 !important;">
-                                                Administrator</p>
+                                                Administrator
+                                            </p>
                                         </div>
                                         <div class="user-img d-flex align-items-center">
                                             <div class="avatar avatar-md">
-                                                <img src="./assets/compiled/jpg/1.jpg">
+                                                <img src="<?= $_SESSION['profile_picture'] ?? 'assets/images/avatar.jpg'; ?>" alt="Profile Picture">
                                             </div>
                                         </div>
                                     </div>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton"
-                                    style="min-width: 11rem;">
-                                    <li><a class="dropdown-item" href="#"><i class="icon-mid bi bi-person me-2"></i> My
-                                            Profile</a></li>
-                                    <hr class="dropdown-divider">
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" style="min-width: 11rem;">
+                                    <li>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                            <i class="icon-mid bi bi-person me-2"></i> My Profile
+                                        </a>
                                     </li>
-                                    <li><a class="dropdown-item" href="#"><i
-                                                class="icon-mid bi bi-box-arrow-left me-2"></i> Logout</a></li>
+                                    <hr class="dropdown-divider">
+                                    <li>
+                                        <a class="dropdown-item" href="logout.php"><i class="icon-mid bi bi-box-arrow-left me-2"></i> Logout</a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </nav>
             </header>
+
+            <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <form action="update_profile.php" method="POST" enctype="multipart/form-data">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="profileModalLabel">My Profile</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <?php if (isset($_SESSION['admin'])): ?>
+                                    <div class="text-center mb-3">
+                                        <img id="preview" src="<?php echo htmlspecialchars($_SESSION['profile_picture'] ?? 'default.png'); ?>"
+                                            alt="Profile Picture" class="rounded-circle" width="120" height="120">
+                                    </div>
+
+                                    <!-- View Mode -->
+                                    <div id="viewProfile">
+                                        <table class="table table-bordered">
+                                            <tr>
+                                                <th>Full Name</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['fullname']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Email</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['email']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Phone</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['phone_number']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Gender</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['gender']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Created At</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['created_at']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Last Updated</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['updated_at']); ?></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <!-- Edit Mode -->
+                                    <div id="editProfile" style="display: none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-12">
+                                                <label>Profile Picture</label>
+                                                <input type="file" name="profile_picture" class="form-control" onchange="previewEditImage(event)">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Full Name</label>
+                                                <input type="text" name="fullname" class="form-control" value="<?php echo htmlspecialchars($_SESSION['fullname']); ?>" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Email</label>
+                                                <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>New Password</label>
+                                                <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current password">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label>Phone Number</label>
+                                                <input type="text" name="phone_number" class="form-control" value="<?php echo htmlspecialchars($_SESSION['phone_number']); ?>">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Gender</label>
+                                                <select name="gender" class="form-control" required>
+                                                    <option value="Male" <?php if ($_SESSION['gender'] == 'Male') echo 'selected'; ?>>Male</option>
+                                                    <option value="Female" <?php if ($_SESSION['gender'] == 'Female') echo 'selected'; ?>>Female</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                                <!-- Toggle buttons -->
+                                <button type="button" class="btn btn-primary" id="editBtn" onclick="toggleEdit(true)">Edit</button>
+                                <button type="submit" class="btn btn-success" id="saveBtn" style="display: none;">Save Changes</button>
+                                <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;" onclick="toggleEdit(false)">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
             <div id="main-content">
 
                 <div class="page-heading">
@@ -205,7 +377,7 @@
                                             </button>
                                         </div>
                                         <div class="modal-body">
-                                            <form class="form" data-parsley-validate enctype="multipart/form-data">
+                                            <form class="form" data-parsley-validate enctype="multipart/form-data" method="POST">
                                                 <div class="row">
                                                     <!-- Left Column -->
                                                     <div class="col-md-6 col-12">
@@ -290,18 +462,99 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>Graiden</td>
-                                                <td>Rina Restua</td>
-                                                <td>Female</td>
-                                                <td>rina.restua@ub.edu.ph</td>
-                                                <td>Not Provided</td>
-                                                <td>
-                                                    <a href="">Update</a>
-                                                    <a href="">Delete</a>
-                                                </td>
-                                            </tr>
+                                            <?php foreach ($admins as $admin): ?>
+                                                <?php if ($admin['id'] == $_SESSION['admin_id']) continue; ?>
+                                                <tr>
+                                                    <td>
+                                                        <?php if (!empty($admin['profile_picture'])): ?>
+                                                            <img src="<?= htmlspecialchars($admin['profile_picture']) ?>" alt="Profile Picture" width="50" height="50">
+                                                        <?php else: ?>
+                                                            <span>No Image</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($admin['fullname']) ?></td>
+                                                    <td><?= htmlspecialchars($admin['gender']) ?></td>
+                                                    <td><?= htmlspecialchars($admin['email']) ?></td>
+                                                    <td><?= htmlspecialchars($admin['phone_number']) ?></td>
+                                                    <td>
+                                                        <!-- Edit Button -->
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-warning"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editModal<?= $admin['id'] ?>">
+                                                            Edit
+                                                        </button>
+
+                                                        <!-- Delete Button -->
+                                                        <a href="delete_admin.php?id=<?= $admin['id'] ?>" class="btn btn-sm btn-danger"
+                                                            onclick="return confirm('Are you sure you want to delete this admin?');">
+                                                            Delete
+                                                        </a>
+                                                    </td>
+                                                </tr>
+
+                                                <!-- Modal for this admin -->
+                                                <div class="modal fade" id="editModal<?= $admin['id'] ?>" tabindex="-1" aria-labelledby="editModalLabel<?= $admin['id'] ?>" aria-hidden="true">
+                                                    <div class="modal-dialog modal-lg">
+                                                        <form method="POST" action="update_admin.php">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="editModalLabel<?= $admin['id'] ?>"><?= htmlspecialchars($admin['fullname']) ?></h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+
+                                                                <div class="modal-body">
+                                                                    <input type="hidden" name="id" value="<?= $admin['id'] ?>">
+
+                                                                    <div class="row">
+                                                                        <div class="col-md-6">
+                                                                            <!-- Fullname -->
+                                                                            <div class="form-group">
+                                                                                <label>Fullname</label>
+                                                                                <input type="text" class="form-control" name="fullname" value="<?= htmlspecialchars($admin['fullname']) ?>" required>
+                                                                            </div>
+
+                                                                            <!-- Gender -->
+                                                                            <div class="form-group mt-2">
+                                                                                <label>Gender</label><br>
+                                                                                <div class="form-check form-check-inline">
+                                                                                    <input class="form-check-input" type="radio" name="gender" id="genderMale<?= $admin['id'] ?>" value="male" <?= $admin['gender'] === 'male' ? 'checked' : '' ?>>
+                                                                                    <label class="form-check-label" for="genderMale<?= $admin['id'] ?>">Male</label>
+                                                                                </div>
+                                                                                <div class="form-check form-check-inline">
+                                                                                    <input class="form-check-input" type="radio" name="gender" id="genderFemale<?= $admin['id'] ?>" value="female" <?= $admin['gender'] === 'female' ? 'checked' : '' ?>>
+                                                                                    <label class="form-check-label" for="genderFemale<?= $admin['id'] ?>">Female</label>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="col-md-6">
+                                                                            <!-- Email -->
+                                                                            <div class="form-group">
+                                                                                <label>Email</label>
+                                                                                <input style="background-color: gray;" readonly type="email" class="form-control" name="email" value="<?= htmlspecialchars($admin['email']) ?>" required>
+                                                                            </div>
+
+                                                                            <!-- Phone -->
+                                                                            <div class="form-group mt-2">
+                                                                                <label>Phone Number</label>
+                                                                                <input type="text" class="form-control" name="phone_number" value="<?= htmlspecialchars($admin['phone_number']) ?>" required>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="modal-footer">
+                                                                    <button type="submit" class="btn btn-success">Update</button>
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
                                         </tbody>
+
                                     </table>
                                 </div>
                             </div>
@@ -323,6 +576,24 @@
     <script src="assets/static/js/pages/datatables.js"></script>
     <script src="assets/extensions/parsleyjs/parsley.min.js"></script>
     <script src="assets/static/js/pages/parsley.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <?php if (isset($_SESSION['success']) || isset($_SESSION['error'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: '<?= isset($_SESSION['success']) ? 'success' : 'error' ?>',
+                    title: '<?= isset($_SESSION['success']) ? addslashes($_SESSION['success']) : addslashes($_SESSION['error']) ?>',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            });
+        </script>
+        <?php unset($_SESSION['success'], $_SESSION['error']); ?>
+    <?php endif; ?>
     <script>
         function previewImage(event) {
             const previewBox = document.getElementById('image-preview-box');
@@ -351,6 +622,22 @@
             previewBox.style.display = 'none';
         }
     </script>
+
+    <script>
+        function toggleEdit(editMode) {
+            document.getElementById('viewProfile').style.display = editMode ? 'none' : 'block';
+            document.getElementById('editProfile').style.display = editMode ? 'block' : 'none';
+            document.getElementById('editBtn').style.display = editMode ? 'none' : 'inline-block';
+            document.getElementById('saveBtn').style.display = editMode ? 'inline-block' : 'none';
+            document.getElementById('cancelBtn').style.display = editMode ? 'inline-block' : 'none';
+        }
+
+        function previewEditImage(event) {
+            const output = document.getElementById('preview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+        }
+    </script>
+
 </body>
 
 </html>

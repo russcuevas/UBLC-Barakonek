@@ -135,7 +135,7 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                                 </li>
 
                                 <li class="submenu-item  ">
-                                    <a href="result_management.php" class="submenu-link">Students</a>
+                                    <a href="student_management.php" class="submenu-link">Students</a>
 
                                 </li>
                             </ul>
@@ -205,7 +205,9 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" style="min-width: 11rem;">
                                     <li>
-                                        <a class="dropdown-item" href="#"><i class="icon-mid bi bi-person me-2"></i> My Profile</a>
+                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                            <i class="icon-mid bi bi-person me-2"></i> My Profile
+                                        </a>
                                     </li>
                                     <hr class="dropdown-divider">
                                     <li>
@@ -217,6 +219,106 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                     </div>
                 </nav>
             </header>
+
+            <!-- Profile Modal -->
+            <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <form action="update_profile.php" method="POST" enctype="multipart/form-data">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="profileModalLabel">My Profile</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <?php if (isset($_SESSION['admin'])): ?>
+                                    <div class="text-center mb-3">
+                                        <img id="preview" src="<?php echo htmlspecialchars($_SESSION['profile_picture'] ?? 'default.png'); ?>"
+                                            alt="Profile Picture" class="rounded-circle" width="120" height="120">
+                                    </div>
+
+                                    <!-- View Mode -->
+                                    <div id="viewProfile">
+                                        <table class="table table-bordered">
+                                            <tr>
+                                                <th>Full Name</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['fullname']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Email</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['email']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Phone</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['phone_number']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Gender</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['gender']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Created At</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['created_at']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Last Updated</th>
+                                                <td><?php echo htmlspecialchars($_SESSION['updated_at']); ?></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <!-- Edit Mode -->
+                                    <div id="editProfile" style="display: none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-12">
+                                                <label>Profile Picture</label>
+                                                <input type="file" name="profile_picture" class="form-control" onchange="previewImage(event)">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Full Name</label>
+                                                <input type="text" name="fullname" class="form-control" value="<?php echo htmlspecialchars($_SESSION['fullname']); ?>" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Email</label>
+                                                <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>New Password</label>
+                                                <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current password">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label>Phone Number</label>
+                                                <input type="text" name="phone_number" class="form-control" value="<?php echo htmlspecialchars($_SESSION['phone_number']); ?>">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Gender</label>
+                                                <select name="gender" class="form-control" required>
+                                                    <option value="Male" <?php if ($_SESSION['gender'] == 'Male') echo 'selected'; ?>>Male</option>
+                                                    <option value="Female" <?php if ($_SESSION['gender'] == 'Female') echo 'selected'; ?>>Female</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                                <!-- Toggle buttons -->
+                                <button type="button" class="btn btn-primary" id="editBtn" onclick="toggleEdit(true)">Edit</button>
+                                <button type="submit" class="btn btn-success" id="saveBtn" style="display: none;">Save Changes</button>
+                                <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;" onclick="toggleEdit(false)">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+
             <div id="main-content">
 
                 <div class="page-heading">
@@ -440,6 +542,25 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
             });
         </script>
     <?php endif; ?>
+
+    <?php if (isset($_SESSION['success']) || isset($_SESSION['error'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: '<?= isset($_SESSION['success']) ? 'success' : 'error' ?>',
+                    title: '<?= isset($_SESSION['success']) ? addslashes($_SESSION['success']) : addslashes($_SESSION['error']) ?>',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            });
+        </script>
+        <?php unset($_SESSION['success'], $_SESSION['error']); ?>
+    <?php endif; ?>
+
+
     <script>
         function updateManilaTime() {
             const now = new Date();
@@ -492,81 +613,81 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                         };
 
                         function createOrUpdateChart(containerId, categoryName) {
-    const options = {
-        chart: {
-            type: 'area',
-            height: 450,
-            zoom: {
-                enabled: true
-            }
-        },
-        series: data[categoryName].series.map(s => {
-            const count = data[categoryName].counts[s.name] || 0;
-            return {
-                name: `${s.name} (${count})`,
-                data: s.data
-            };
-        }),
-        xaxis: {
-            categories: data[categoryName].categories
-        },
-        yaxis: {
-            title: {
-                text: 'Number of Students Taken the DASS-42',
-                style: {
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    color: '#555'
-                }
-            },
-            labels: {
-                formatter: function(val) {
-                    return Math.round(val);
-                }
-            }
-        },
-        stroke: {
-            curve: 'smooth'
-        },
-            fill: {
-        type: "gradient",
-        gradient: {
-            shadeIntensity: 1,
-            opacityFrom: 0.7,
-            opacityTo: 0.2,
-            stops: [0, 90, 100]
-        }
-    },
-        dataLabels: {
-            enabled: false
-        },
-        tooltip: {
-            shared: true,
-            intersect: false
-        },
-        colors: colors[categoryName],
-        legend: {
-            position: "top",
-            horizontalAlign: "left"
-        },
-        title: {
-            text: categoryName,
-            align: 'left',
-            margin: 10,
-            style: {
-                fontSize: '16px',
-                fontWeight: 'bold'
-            }
-        }
-    };
+                            const options = {
+                                chart: {
+                                    type: 'area',
+                                    height: 450,
+                                    zoom: {
+                                        enabled: true
+                                    }
+                                },
+                                series: data[categoryName].series.map(s => {
+                                    const count = data[categoryName].counts[s.name] || 0;
+                                    return {
+                                        name: `${s.name} (${count})`,
+                                        data: s.data
+                                    };
+                                }),
+                                xaxis: {
+                                    categories: data[categoryName].categories
+                                },
+                                yaxis: {
+                                    title: {
+                                        text: 'Number of Students Taken the DASS-42',
+                                        style: {
+                                            fontSize: '14px',
+                                            fontWeight: 'bold',
+                                            color: '#555'
+                                        }
+                                    },
+                                    labels: {
+                                        formatter: function(val) {
+                                            return Math.round(val);
+                                        }
+                                    }
+                                },
+                                stroke: {
+                                    curve: 'smooth'
+                                },
+                                fill: {
+                                    type: "gradient",
+                                    gradient: {
+                                        shadeIntensity: 1,
+                                        opacityFrom: 0.7,
+                                        opacityTo: 0.2,
+                                        stops: [0, 90, 100]
+                                    }
+                                },
+                                dataLabels: {
+                                    enabled: false
+                                },
+                                tooltip: {
+                                    shared: true,
+                                    intersect: false
+                                },
+                                colors: colors[categoryName],
+                                legend: {
+                                    position: "top",
+                                    horizontalAlign: "left"
+                                },
+                                title: {
+                                    text: categoryName,
+                                    align: 'left',
+                                    margin: 10,
+                                    style: {
+                                        fontSize: '16px',
+                                        fontWeight: 'bold'
+                                    }
+                                }
+                            };
 
-    if (charts[categoryName]) {
-        charts[categoryName].updateOptions(options);
-    } else {
-        charts[categoryName] = new ApexCharts(document.querySelector(containerId), options);
-        charts[categoryName].render();
-    }
-}
+                            if (charts[categoryName]) {
+                                charts[categoryName].updateOptions(options);
+                            } else {
+                                charts[categoryName] = new ApexCharts(document.querySelector(containerId), options);
+                                charts[categoryName].render();
+                            }
+                        }
 
                         createOrUpdateChart("#chart-anxiety", "Anxiety");
                         createOrUpdateChart("#chart-stress", "Stress");
@@ -711,6 +832,22 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                     console.error('Error loading student gender data:', error);
                 });
         });
+    </script>
+
+
+    <script>
+        function toggleEdit(editMode) {
+            document.getElementById('viewProfile').style.display = editMode ? 'none' : 'block';
+            document.getElementById('editProfile').style.display = editMode ? 'block' : 'none';
+            document.getElementById('editBtn').style.display = editMode ? 'none' : 'inline-block';
+            document.getElementById('saveBtn').style.display = editMode ? 'inline-block' : 'none';
+            document.getElementById('cancelBtn').style.display = editMode ? 'inline-block' : 'none';
+        }
+
+        function previewImage(event) {
+            const output = document.getElementById('preview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+        }
     </script>
 
 </body>

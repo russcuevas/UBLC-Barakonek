@@ -258,12 +258,12 @@ $answerLabels = [
 
                     <section class="section">
                         <div class="card">
-                            <div class="card-header">
+                            <!-- <div class="card-header">
                                 <button type="button" style="float: right;" class="btn btn-primary btn-sm"
                                     data-bs-toggle="modal" data-bs-target="#addStudentModal">
                                     Generate PDF
                                 </button>
-                            </div>
+                            </div> -->
 
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -272,13 +272,73 @@ $answerLabels = [
                                         <input type="hidden" name="student_id" value="<?= $student_id ?>">
                                         <label for="year-select">Filter by Year:</label>
                                         <select id="year-select" name="year" onchange="this.form.submit()">
-                                            <?php foreach ($yearsList as $yr): ?>
+                                            <?php
+                                            $startYear = 2025;
+                                            $endYear = 2030;
+                                            for ($yr = $startYear; $yr <= $endYear; $yr++): ?>
                                                 <option value="<?= $yr ?>" <?= $yr == $year ? 'selected' : '' ?>><?= $yr ?></option>
-                                            <?php endforeach; ?>
+                                            <?php endfor; ?>
+
                                         </select>
                                     </form>
+                                    <div class="col-12 col-md-12">
+                                        <div class="card">
+                                            <div class="card-body d-flex justify-content-center align-items-start gap-4 flex-wrap">
+                                                <div id="chart-mental-health-reports" class="d-flex flex-column gap-4">
+                                                </div>
+
+                                                <div class="table-responsive" style="min-width: 300px;">
+                                                    <table class="table table-bordered text-center">
+                                                        <thead class="table-primary">
+                                                            <tr>
+                                                                <th>Condition</th>
+                                                                <th>Depression</th>
+                                                                <th>Anxiety</th>
+                                                                <th>Stress</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Normal</td>
+                                                                <td>0-9</td>
+                                                                <td>0-7</td>
+                                                                <td>0-14</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Mild</td>
+                                                                <td>10-13</td>
+                                                                <td>8-9</td>
+                                                                <td>15-18</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Moderate</td>
+                                                                <td>14-20</td>
+                                                                <td>10-14</td>
+                                                                <td>19-25</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Severe</td>
+                                                                <td>21-27</td>
+                                                                <td>15-19</td>
+                                                                <td>26-33</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Extremely Severe</td>
+                                                                <td>28+</td>
+                                                                <td>20+</td>
+                                                                <td>34+</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <table class="table table-bordered table-striped align-middle">
+
+
                                         <thead class="table-primary text-center">
                                             <tr>
                                                 <th>Taken</th>
@@ -333,7 +393,7 @@ $answerLabels = [
 
                                                     <tr>
                                                         <td colspan="8" class="py-3">
-                                                            <strong>Answers for this assessment:</strong>
+                                                            <strong>Response:</strong>
                                                             <div class="table-responsive mt-2">
                                                                 <table class="table table-sm table-bordered mb-0 nested-table" style="width:100%">
                                                                     <thead>
@@ -391,6 +451,56 @@ $answerLabels = [
     <script src="assets/static/js/pages/datatables.js"></script>
     <script src="assets/extensions/parsleyjs/parsley.min.js"></script>
     <script src="assets/static/js/pages/parsley.js"></script>
+    <script src="assets/extensions/apexcharts/apexcharts.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const studentId = <?= json_encode($student_id) ?>;
+            const year = <?= json_encode($year) ?>;
+
+            fetch(`analytics/results-chart.php?student_id=${studentId}&year=${year}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.querySelector("#chart-mental-health-reports").innerHTML = '<p class="text-danger">' + data.error + '</p>';
+                        return;
+                    }
+                    const hasValidData = Array.isArray(data.series) && data.series.some(value => value > 0);
+
+                    if (!hasValidData) {
+                        return;
+                    }
+
+                    var options = {
+                        series: data.series,
+                        chart: {
+                            width: 380,
+                            type: 'pie'
+                        },
+                        labels: data.labels,
+                        responsive: [{
+                            breakpoint: 480,
+                            options: {
+                                chart: {
+                                    width: 280
+                                },
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }]
+                    };
+
+                    var chart = new ApexCharts(document.querySelector("#chart-mental-health-reports"), options);
+                    chart.render();
+                })
+                .catch(error => {
+                    console.error('Error fetching chart data:', error);
+                    document.querySelector("#chart-mental-health-reports").innerHTML = '<p class="text-danger">Failed to load chart.</p>';
+                });
+        });
+    </script>
+
+
 </body>
 
 </html>
