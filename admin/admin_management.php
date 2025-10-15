@@ -473,7 +473,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                         <?php endif; ?>
                                                     </td>
                                                     <td><?= htmlspecialchars($admin['fullname']) ?></td>
-                                                    <td><?= htmlspecialchars($admin['gender']) ?></td>
+                                                    <td style="text-transform: capitalize;"><?= htmlspecialchars($admin['gender']) ?></td>
                                                     <td><?= htmlspecialchars($admin['email']) ?></td>
                                                     <td><?= htmlspecialchars($admin['phone_number']) ?></td>
                                                     <td>

@@ -800,6 +800,15 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
             fetch('analytics/student-gender.php')
                 .then(response => response.json())
                 .then(data => {
+                    const chartContainer = document.getElementById("chart-student-gender-count");
+
+                    // Check if there's data to show
+                    if (!data.series || data.series.length === 0 || data.series.every(val => val === 0)) {
+                        // Show no data message
+                        chartContainer.innerHTML = '<p style="text-align:center; padding: 100px 0; color: #888;">No data available</p>';
+                        return; // Don't render the chart
+                    }
+
                     let studentGenderCount = {
                         series: data.series,
                         labels: data.labels,
@@ -821,14 +830,12 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                         },
                     };
 
-                    var chartStudentGenderCount = new ApexCharts(
-                        document.getElementById("chart-student-gender-count"),
-                        studentGenderCount
-                    );
-
+                    var chartStudentGenderCount = new ApexCharts(chartContainer, studentGenderCount);
                     chartStudentGenderCount.render();
                 })
                 .catch(error => {
+                    const chartContainer = document.getElementById("chart-student-gender-count");
+                    chartContainer.innerHTML = '<p style="text-align:center; padding: 100px 0; color: red;">Error loading data</p>';
                     console.error('Error loading student gender data:', error);
                 });
         });
