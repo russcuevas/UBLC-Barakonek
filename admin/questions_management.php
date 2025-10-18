@@ -446,8 +446,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="col-md-7">
     <div class="card">
         <div class="card-header position-relative">
-            <a href="print/print_questionnaire.php" target="_blank" class="btn btn-primary btn-sm float-end">
-                Print
+            <a href="print/DASS-42-Scoring.pdf" download class="btn btn-primary btn-sm float-end">
+                How to compute scores
+            </a>
+            <a href="print/print_questionnaire.php" target="_blank" class="btn btn-primary btn-sm float-end" style="margin-right: 5px;">
+                Print Questionnaire
             </a>
 
             <div class="d-flex align-items-center gap-3 mb-3">

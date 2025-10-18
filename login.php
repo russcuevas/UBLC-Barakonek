@@ -1,3 +1,55 @@
+<?php
+// session with database connection
+include 'database/connection.php';
+session_start();
+
+// Redirect to dashboard if already logged in
+if (isset($_SESSION['student_id'])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
+// Login logic
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $login_input = $_POST['email']; // Could be email or student number
+    $password = $_POST['password'];
+
+    $stmt = $conn->prepare("SELECT * FROM tbl_students WHERE email = ? OR student_no = ?");
+    $stmt->execute([$login_input, $login_input]);
+
+    $student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($student) {
+        if ($password === $student['password']) { // In production, use password_hash / verify
+
+            // Store all student details into session
+            $_SESSION['student_id']    = $student['id'];
+            $_SESSION['fullname']      = $student['fullname'];
+            $_SESSION['year_level']    = $student['year_level'];
+            $_SESSION['department_id'] = $student['department_id'];
+            $_SESSION['course_id']     = $student['course_id'];
+            $_SESSION['gender']        = $student['gender'];
+            $_SESSION['phone_number']  = $student['phone_number'];
+            $_SESSION['email']         = $student['email'];
+            $_SESSION['student_no']    = $student['student_no'];
+            $_SESSION['password']      = $student['password']; // Optional
+            $_SESSION['created_at']    = $student['created_at'];
+            $_SESSION['updated_at']    = $student['updated_at'];
+            $_SESSION['student']       = $student;
+
+            header("Location: dashboard.php");
+            exit();
+        } else {
+            $_SESSION['error'] = "Incorrect password.";
+        }
+    } else {
+        $_SESSION['error'] = "Incorrect password.";
+    }
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html>
 
@@ -58,11 +110,11 @@
                             <div class="my-form-container">
                                 <div class="my-form-inner-container">
                                     <div class="panel-header">
-                                    <h2 style="font-size: 35px;" class="text-center">
-                                        <img class="img-logo" src="assets/images/ub-logo.png" style="height: 150px; margin-right: 10px;">
-                                        <img class="img-logo" src="assets/images/copwell-logo.jpg" style="height: 150px;">
-                                        <br> BARAKONEK
-                                    </h2>
+                                        <h2 style="font-size: 35px;" class="text-center">
+                                            <img class="img-logo" src="assets/images/ub-logo.png" style="height: 150px; margin-right: 10px;">
+                                            <img class="img-logo" src="assets/images/copwell-logo.jpg" style="height: 150px;">
+                                            <br> BARAKONEK
+                                        </h2>
                                     </div>
                                     <div class="panel-body">
                                         <div class="row">
@@ -77,8 +129,15 @@
                                                 <h3 style="font-weight: bold; margin-bottom: 20px;">STUDENT LOGIN</h3>
                                                 <form action="" id="loginForm" class="loginForm" method="post">
                                                     <div class="form-group">
-                                                        <label for="email" class="sr-only">Email</label>
-                                                        <input type="email" class="form-control form-control-lg input-lg" id="email" name="email" placeholder="Email" required>
+                                                        <label for="email" class="sr-only">Email/Student#</label>
+                                                        <input
+                                                            type="email"
+                                                            class="form-control form-control-lg input-lg"
+                                                            id="email"
+                                                            name="email"
+                                                            placeholder="Email"
+                                                            required
+                                                            value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="password" class="sr-only">Password</label>

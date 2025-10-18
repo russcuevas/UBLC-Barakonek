@@ -38,7 +38,17 @@ if ($studentData) {
     $course_name     = 'N/A';
 }
 
+$stmtResults = $conn->prepare("
+    SELECT id, taken_at
+    FROM tbl_results
+    WHERE student_id = ?
+    ORDER BY taken_at DESC
+");
+$stmtResults->execute([$student_id]);
+$results = $stmtResults->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -47,9 +57,10 @@ if ($studentData) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BARAKONEK - Web</title>
     <link rel="shortcut icon" href="assets/dashboard/images/ub-logo.png" type="image/png">
+    <link rel="stylesheet" href="assets/dashboard/extensions/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="./assets/dashboard/compiled/css/table-datatable-jquery.css">
     <link rel="stylesheet" href="./assets/dashboard/compiled/css/app.css">
     <link rel="stylesheet" href="./assets/dashboard/compiled/css/app-dark.css">
-    <link rel="stylesheet" href="./assets/dashboard/compiled/css/iconly.css">
 </head>
 
 <body>
@@ -62,7 +73,7 @@ if ($studentData) {
 
                         <!-- Left: Logo -->
                         <div class="logo d-flex align-items-center">
-                            <a href="dashboard.php">
+                            <a href="index.html">
                                 <img src="assets/dashboard/images/ub-logo.png" alt="Logo" style="height:40px;">
                             </a>
                         </div>
@@ -81,30 +92,30 @@ if ($studentData) {
                     </div>
                 </div>
 
-                <div class="sidebar-menu">
+                 <div class="sidebar-menu">
                     <ul class="menu">
                         <li class="sidebar-title">Modules</li>
 
-                        <li class="sidebar-item active ">
+                        <li class="sidebar-item">
                             <a href="dashboard.php" class='sidebar-link'>
                                 <i class="bi bi-house-fill"></i>
                                 <span>Dashboard</span>
                             </a>
                         </li>
 
-                        <li class="sidebar-item  has-sub">
+                        <li class="sidebar-item active has-sub">
                             <a href="#" class='sidebar-link'>
                                 <i class="bi bi-file-text-fill"></i>
                                 <span>Inquiry</span>
                             </a>
 
-                            <ul class="submenu ">
+                            <ul class="submenu active">
 
                                 <li class="submenu-item  ">
                                     <a href="appointment.php" class="submenu-link">Appointment</a>
                                 </li>
 
-                                <li class="submenu-item  ">
+                                <li class="submenu-item  active">
                                     <a href="results.php" class="submenu-link">My Result</a>
                                 </li>
                             </ul>
@@ -155,111 +166,79 @@ if ($studentData) {
                     </div>
                 </nav>
             </header>
+
             <div id="main-content">
 
                 <div class="page-heading">
-                    <h3>Dashboard</h3>
-                </div>
-                <div class="page-content">
-                    <section class="row">
-                        <!-- Left Column: My Profile -->
-                        <div class="col-12 col-lg-6">
-                            <div class="card p-4">
-                                <div class="row align-items-center">
-                                    <!-- Profile Image -->
-                                    <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
-                                        <img src="assets/images/avatar.jpg" alt="Profile Image" class="rounded-circle shadow" width="120" height="120">
-                                    </div>
-
-                                    <!-- Profile Details -->
-                                    <div class="col-12 col-md-8">
-                                        <div class="mb-3">
-                                            <h5 style="color: #752738 !important;" class="fw-bold mb-1">
-                                                <?= htmlspecialchars($_SESSION['fullname']) ?>
-                                            </h5>
-                                            <p style="color: #752738 !important;">
-                                                Student No: <strong><?= htmlspecialchars($_SESSION['student_no']) ?></strong>
-                                            </p>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <p class="mb-1"><strong>Email:</strong> <?= htmlspecialchars($_SESSION['email']) ?></p>
-                                            <p class="mb-1"><strong>Phone Number:</strong> <?= htmlspecialchars($_SESSION['phone_number']) ?></p>
-                                            <p class="mb-1"><strong>Gender:</strong> <?= htmlspecialchars($_SESSION['gender']) ?></p>
-                                            <p class="mb-1"><strong>Department:</strong> <?= htmlspecialchars($department_name) ?></p>
-                                            <p class="mb-1"><strong>Year-Course:</strong> <?= htmlspecialchars($_SESSION['year_level']) ?> - <?= htmlspecialchars($course_name) ?></p>
-                                            <?php
-                                            $createdAtRaw = $_SESSION['created_at'] ?? null;
-                                            $createdAtFormatted = $createdAtRaw
-                                                ? (new DateTime($createdAtRaw))->format('F j Y - g:ia')
-                                                : 'N/A';
-                                            ?>
-                                            <p class="mb-1"><strong>Account Created:</strong> <?= $createdAtFormatted ?></p>
-                                        </div>
-
-                                        <a href="#" class="btn btn-primary mt-2">
-                                            <i class="bi bi-pencil-square"></i> Edit Profile
-                                        </a>
-                                    </div>
-
-                                </div>
+                    <div class="page-title">
+                        <div class="row">
+                            <div class="col-12 col-md-6 order-md-1 order-last">
+                                <h3>My Result</h3>
                             </div>
-
-
-                        </div>
-
-                        <!-- Right Column: Placeholder -->
-                        <div class="col-12 col-lg-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h4>DASS-42 Exam</h4>
-                                </div>
-                                <div class="card-body">
-                                    <p>The Depression Anxiety Stress Scales – 42 (DASS-42) is a 42-item self-report scale designed to measure the negative emotional states of depression, anxiety and stress in adults and older adolescents (17 years +). It is the long version of the DASS-21. It is a useful tool for routine outcome monitoring and can be used to assess the level of treatment response. </p>
-                                    <div class="text-end">
-                                        <a href="examination_page.php" class="btn btn-primary mt-2">
-                                            <i class="bi bi-file-text-fill"></i> Take exam
-                                        </a>
-                                    </div>
-                                </div>
-
+                            <div class="col-12 col-md-6 order-md-2 order-first">
+                                <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">My Result</li>
+                                    </ol>
+                                </nav>
                             </div>
                         </div>
-                    </section>
-                </div>
+                    </div>
 
+                    <section class="section">
+    <div class="card">
+        <div class="card-header"></div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table" id="table1">
+                    <thead>
+                        <tr>
+                            <th>Taken At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($results)): ?>
+                            <?php foreach ($results as $row): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars((new DateTime($row['taken_at']))->format('F j, Y - g:ia')) ?></td>
+                                    <td>
+                                        <a href="view_result.php?result_id=<?= htmlspecialchars($row['id']) ?>" class="btn btn-outline-primary mt-2">
+                                            View Result
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="2" class="text-center">No results found.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+                    <!-- Basic Tables end -->
+                </div>
             </div>
         </div>
     </div>
 
     <script src="assets/dashboard/static/js/components/dark.js"></script>
     <script src="assets/dashboard/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-
-
     <script src="assets/dashboard/compiled/js/app.js"></script>
-
-
-
-    <!-- Need: Apexcharts -->
-    <script src="assets/dashboard/extensions/apexcharts/apexcharts.min.js"></script>
-    <script src="assets/dashboard/static/js/pages/dashboard.js"></script>
+    <script src="assets/dashboard/extensions/jquery/jquery.min.js"></script>
+    <script src="assets/dashboard/extensions/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="assets/dashboard/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="assets/dashboard/static/js/pages/datatables.js"></script>
+    <script src="assets/dashboard/extensions/parsleyjs/parsley.min.js"></script>
+    <script src="assets/dashboard/static/js/pages/parsley.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <?php if ($show_welcome): ?>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: "Welcome <?= htmlspecialchars("$fullname") ?>",
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            });
-        </script>
-    <?php endif; ?>
-
+    <!-- SWEETALERT SUCCESS -->
     <?php if (isset($_SESSION['success']) || isset($_SESSION['error'])): ?>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
@@ -276,7 +255,20 @@ if ($studentData) {
         </script>
         <?php unset($_SESSION['success'], $_SESSION['error']); ?>
     <?php endif; ?>
+    <script>
+        function toggleEdit(editMode) {
+            document.getElementById('viewProfile').style.display = editMode ? 'none' : 'block';
+            document.getElementById('editProfile').style.display = editMode ? 'block' : 'none';
+            document.getElementById('editBtn').style.display = editMode ? 'none' : 'inline-block';
+            document.getElementById('saveBtn').style.display = editMode ? 'inline-block' : 'none';
+            document.getElementById('cancelBtn').style.display = editMode ? 'inline-block' : 'none';
+        }
 
+        function previewImage(event) {
+            const output = document.getElementById('preview');
+            output.src = URL.createObjectURL(event.target.files[0]);
+        }
+    </script>
 </body>
 
 </html>

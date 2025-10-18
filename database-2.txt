@@ -136,6 +136,56 @@ VALUES
 (5, 'Bachelor of Science in Tourism Management');
 
 
+-- 4. Students
+INSERT INTO tbl_students (fullname, year_level, department_id, course_id, gender, phone_number, email, student_no, password) VALUES
+('Russel Vincent Cuevas', 'IV', 4, 12, 'Male', '0987654321', '2420580@ub.edu.ph', '2420580', '123456789'),
+('John Dave De Leon', 'II', 4, 12, 'Male', '0123456789', '2020590@ub.edu.ph', '2020590', '123456789'),
+('Sample Girl', 'IV', 4, 12, 'Female', '0123456789', '2021590@ub.edu.ph', '2021590', '123456789'),
+('Alice Marie Santos', 'IV', 4, 12, 'Female', '0912345678', '2022600@ub.edu.ph', '2022600', '123456789'),
+('Brian Mark Reyes', 'IV', 4, 12, 'Male', '0918765432', '2023601@ub.edu.ph', '2023601', '123456789'),
+('Cynthia Lopez', 'IV', 4, 12, 'Female', '0923456789', '2024602@ub.edu.ph', '2024602', '123456789'),
+('Daniel Cruz', 'IV', 4, 12, 'Male', '0934567890', '2025603@ub.edu.ph', '2025603', '123456789'),
+('Eva Garcia', 'IV', 4, 12, 'Female', '0945678901', '2026604@ub.edu.ph', '2026604', '123456789'),
+('Felix Ramos', 'IV', 4, 12, 'Male', '0956789012', '2027605@ub.edu.ph', '2027605', '123456789'),
+('Grace Mendoza', 'IV', 4, 12, 'Female', '0967890123', '2028606@ub.edu.ph', '2028606', '123456789'),
+('Henry Villanueva', 'IV', 4, 12, 'Male', '0978901234', '2029607@ub.edu.ph', '2029607', '123456789'),
+('Isabel Fernandez', 'IV', 4, 12, 'Female', '0989012345', '2030608@ub.edu.ph', '2030608', '123456789'),
+('James Morales', 'IV', 4, 12, 'Male', '0990123456', '2031609@ub.edu.ph', '2031609', '123456789'),
+('Karen Delgado', 'IV', 4, 12, 'Female', '0901234567', '2032610@ub.edu.ph', '2032610', '123456789'),
+('Leo Aquino', 'IV', 4, 12, 'Male', '0912345679', '2033611@ub.edu.ph', '2033611', '123456789'),
+('Maria Luna', 'IV', 4, 12, 'Female', '0923456790', '2034612@ub.edu.ph', '2034612', '123456789'),
+('Nathaniel Cruz', 'IV', 4, 12, 'Male', '0934567801', '2035613@ub.edu.ph', '2035613', '123456789'),
+('Olivia Reyes', 'IV', 4, 12, 'Female', '0945678012', '2036614@ub.edu.ph', '2036614', '123456789'),
+('Patrick Torres', 'IV', 4, 12, 'Male', '0956780123', '2037615@ub.edu.ph', '2037615', '123456789'),
+('Quinn Bautista', 'IV', 4, 12, 'Female', '0967891234', '2038616@ub.edu.ph', '2038616', '123456789'),
+('Ryan Sanchez', 'IV', 4, 12, 'Male', '0978902345', '2039617@ub.edu.ph', '2039617', '123456789'),
+('Sophia Jimenez', 'IV', 4, 12, 'Female', '0989013456', '2040618@ub.edu.ph', '2040618', '123456789'),
+('Thomas Navarro', 'IV', 4, 12, 'Male', '0990124567', '2041619@ub.edu.ph', '2041619', '123456789'),
+('Ursula Mercado', 'IV', 4, 12, 'Female', '0901235678', '2042620@ub.edu.ph', '2042620', '123456789'),
+('Victor Paredes', 'IV', 4, 12, 'Male', '0912346789', '2043621@ub.edu.ph', '2043621', '123456789'),
+('Wendy Cruz', 'IV', 4, 12, 'Female', '0923457890', '2044622@ub.edu.ph', '2044622', '123456789'),
+('Xavier Dela Cruz', 'IV', 4, 12, 'Male', '0934568901', '2045623@ub.edu.ph', '2045623', '123456789'),
+('Yvonne Gonzales', 'IV', 4, 12, 'Female', '0945679012', '2046624@ub.edu.ph', '2046624', '123456789'),
+('Zachary Diaz', 'IV', 4, 12, 'Male', '0956780123', '2047625@ub.edu.ph', '2047625', '123456789'),
+('Amy Villanueva', 'IV', 4, 12, 'Female', '0967891234', '2048626@ub.edu.ph', '2048626', '123456789'),
+('Benjie Cruz', 'IV', 4, 12, 'Male', '0978902345', '2049627@ub.edu.ph', '2049627', '123456789'),
+('Clara Reyes', 'IV', 4, 12, 'Female', '0989013456', '2050628@ub.edu.ph', '2050628', '123456789'),
+('Derek Gonzales', 'IV', 4, 12, 'Male', '0990124567', '2051629@ub.edu.ph', '2051629', '123456789'),
+('Ella Mendoza', 'IV', 4, 12, 'Female', '0901235678', '2052630@ub.edu.ph', '2052630', '123456789'),
+('Francis Torres', 'IV', 4, 12, 'Male', '0912346789', '2053631@ub.edu.ph', '2053631', '123456789'),
+('Gina Aquino', 'IV', 4, 12, 'Female', '0923457890', '2054632@ub.edu.ph', '2054632', '123456789'),
+('Hector Navarro', 'IV', 4, 12, 'Male', '0934568901', '2055633@ub.edu.ph', '2055633', '123456789'),
+('Irene Bautista', 'IV', 4, 12, 'Female', '0945679012', '2056634@ub.edu.ph', '2056634', '123456789'),
+('Jack Paredes', 'IV', 4, 12, 'Male', '0956780123', '2057635@ub.edu.ph', '2057635', '123456789'),
+('Kim Sanchez', 'IV', 4, 12, 'Female', '0967891234', '2058636@ub.edu.ph', '2058636', '123456789'),
+('Liam Jimenez', 'IV', 4, 12, 'Male', '0978902345', '2059637@ub.edu.ph', '2059637', '123456789'),
+('Mia Mercado', 'IV', 4, 12, 'Female', '0989013456', '2060638@ub.edu.ph', '2060638', '123456789'),
+('Noah Diaz', 'IV', 4, 12, 'Male', '0990124567', '2061639@ub.edu.ph', '2061639', '123456789'),
+('Olga Villanueva', 'IV', 4, 12, 'Female', '0901235678', '2062640@ub.edu.ph', '2062640', '123456789'),
+('Paul Cruz', 'IV', 4, 12, 'Male', '0912346789', '2063641@ub.edu.ph', '2063641', '123456789'),
+('Queenie Reyes', 'IV', 4, 12, 'Female', '0923457890', '2064642@ub.edu.ph', '2064642', '123456789');
+
+
 
 -- 5. Categories
 INSERT INTO tbl_categories (category_name) VALUES
@@ -144,56 +194,46 @@ INSERT INTO tbl_categories (category_name) VALUES
 ('Stress');
 
 -- 6. Questions
--- Depression (category_id = 1)
-INSERT INTO tbl_questions (category_id, question) VALUES
-(1, 'I couldn''t seem to experience any positive feeling at all'),
-(1, 'I just couldn''t seem to get going'),
-(1, 'I felt that I had nothing to look forward to'),
-(1, 'I felt sad and depressed'),
-(1, 'I felt that I had lost interest in just about everything'),
-(1, 'I felt I wasn''t worth much as a person'),
-(1, 'I felt that life wasn''t worthwhile'),
-(1, 'I felt down-hearted and blue'),
-(1, 'I was unable to become enthusiastic about anything'),
-(1, 'I felt I was pretty worthless'),
-(1, 'I could see nothing in the future to be hopeful about'),
-(1, 'I felt that life was meaningless'),
-(1, 'I found it difficult to work up the initiative to do things'),
-(1, 'I found myself getting upset by quite trivial things');
-
--- Anxiety (category_id = 2)
-INSERT INTO tbl_questions (category_id, question) VALUES
-(2, 'I was aware of dryness of my mouth'),
-(2, 'I experienced breathing difficulty (e.g., excessively rapid breathing, breathlessness in the absence of physical exertion)'),
-(2, 'I had a feeling of shakiness (e.g., legs going to give way)'),
-(2, 'I found myself in situations that made me so anxious I was most relieved when they ended'),
-(2, 'I found myself getting upset rather easily'),
-(2, 'I felt that I was using a lot of nervous energy'),
-(2, 'I had a feeling of faintness'),
-(2, 'I perspired noticeably (e.g., hands sweaty) in the absence of high temperatures or physical exertion'),
-(2, 'I felt scared without any good reason'),
-(2, 'I had difficulty in swallowing'),
-(2, 'I was aware of the action of my heart in the absence of physical exertion (e.g., sense of heart rate increase, heart missing a beat)'),
-(2, 'I felt I was close to panic'),
-(2, 'I feared that I would be "thrown" by some trivial but unfamiliar task'),
-(2, 'I was worried about situations in which I might panic and make a fool of myself'),
-(2, 'I experienced trembling (e.g., in the hands)');
-
--- Stress (category_id = 3)
 INSERT INTO tbl_questions (category_id, question) VALUES
 (3, 'I found myself getting upset by quite trivial things'),
+(2, 'I was aware of dryness of my mouth'),
+(1, 'I couldn''t seem to experience any positive feeling at all'),
+(2, 'I experienced breathing difficulty (eg. excessively rapid breathing, breathlessness in the absence of physical exertion)'),
+(1, 'I just couldn''t seem to get going'),
 (3, 'I tended to over-react to situations'),
+(2, 'I had a feeling of shakiness (e.g. legs going to give way)'),
 (3, 'I found it difficult to relax'),
-(3, 'I found myself getting impatient when I was delayed in any way (e.g., elevators, traffic lights, being kept waiting)'),
+(2, 'I found myself in situations that made me so anxious I was most relieved when they ended'),
+(1, 'I felt that I had nothing to look forward to'),
+(3, 'I found myself getting upset rather easily'),
+(2, 'I felt that I was using a lot of nervous energy'),
+(1, 'I felt sad and depressed'),
+(3, 'I found myself getting impatient when I was delayed in any way (e.g. elevators, traffic lights, being kept waiting)'),
+(2, 'I had a feeling of faintness'),
+(1, 'I felt that I had lost interest in just about everything'),
+(1, 'I felt I wasn''t worth much as a person'),
 (3, 'I felt that I was rather touchy'),
+(2, 'I perspired noticeably (e.g. hands sweaty) in the absence of high temperatures or physical exertion'),
+(2, 'I felt scared without any good reason'),
+(1, 'I felt that life wasn''t worthwhile'),
 (3, 'I found it hard to wind down'),
+(2, 'I had difficulty in swallowing'),
 (3, 'I couldn''t seem to get any enjoyment out of the things I did'),
+(2, 'I was aware of the action of my heart in the absence of physical exertion (e.g. sense of heart rate increase, heart missing a beat)'),
+(1, 'I felt down-hearted and blue'),
 (3, 'I found that I was very irritable'),
+(2, 'I felt I was close to panic'),
 (3, 'I found it hard to calm down after something upset me'),
+(2, 'I feared that I would be "thrown" by some trivial but unfamiliar task'),
+(1, 'I was unable to become enthusiastic about anything'),
 (3, 'I found it difficult to tolerate interruptions to what I was doing'),
 (3, 'I was in a state of nervous tension'),
+(1, 'I felt I was pretty worthless'),
 (3, 'I was intolerant of anything that kept me from getting on with what I was doing'),
 (3, 'I felt terrified'),
-(3, 'I found myself getting agitated');
-
-
+(1, 'I could see nothing in the future to be hopeful about'),
+(1, 'I felt that life was meaningless'),
+(3, 'I found myself getting agitated'),
+(2, 'I was worried about situations in which I might panic and make a fool of myself'),
+(2, 'I experienced trembling (e.g. in the hands)'),
+(1, 'I found it difficult to work up the initiative to do things');
