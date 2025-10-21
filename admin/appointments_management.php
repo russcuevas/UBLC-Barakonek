@@ -352,7 +352,6 @@ $appointments = $stmtAppointments->fetchAll(PDO::FETCH_ASSOC);
                                                         <th>Student</th>
                                                         <th>Scheduled At</th>
                                                         <th>Type</th>
-                                                        <th>Counselor</th>
                                                         <th>Remarks</th>
                                                         <th>Status</th>
                                                         <th>Action</th>
@@ -370,12 +369,35 @@ $appointments = $stmtAppointments->fetchAll(PDO::FETCH_ASSOC);
                                                             </td>
                                                             <td><?= htmlspecialchars(date('M d Y - g:ia', strtotime($appointment['scheduled_date']))) ?></td>
                                                             <td><?= $appointment['type'] === 'online' ? '<span style="color: green;">Online</span>' : '<span style="color: green;">Face to face</span>' ?></td>
-                                                            <td><?= htmlspecialchars($appointment['counselor_name']) ?></td>
                                                             <td><?= htmlspecialchars($appointment['student_remarks']) ?></td>
-                                                            <td><span class="badge bg-secondary"><?= htmlspecialchars(ucfirst($appointment['status'])) ?></span></td>
+                                                            <?php
+                                                            $status = strtolower($appointment['status']);
+                                                            switch ($status) {
+                                                                case 'pending':
+                                                                    $badgeClass = 'bg-warning';
+                                                                    break;
+                                                                case 'rejected':
+                                                                    $badgeClass = 'bg-danger';
+                                                                    break;
+                                                                case 'scheduled':
+                                                                    $badgeClass = 'bg-info';
+                                                                    break;
+                                                                case 'completed':
+                                                                    $badgeClass = 'bg-success';
+                                                                    break;
+                                                                default:
+                                                                    $badgeClass = 'bg-secondary';
+                                                            }
+                                                            ?>
+                                                            <td>
+                                                                <span class="badge <?= $badgeClass ?>">
+                                                                    <?= htmlspecialchars(ucfirst($appointment['status'])) ?>
+                                                                </span>
+                                                            </td>
                                                             <td>
                                                                 <?php if ($appointment['status'] === 'Pending'): ?>
                                                                     <a href="approved_appointment.php?id=<?= $appointment['id'] ?>" class="btn btn-sm btn-success mb-2">Approve</a>
+                                                                    <br>
                                                                     <button type="button"
                                                                         class="btn btn-sm btn-danger"
                                                                         onclick="rejectAppointment(<?= $appointment['id'] ?>)">Reject</button>
@@ -386,7 +408,111 @@ $appointments = $stmtAppointments->fetchAll(PDO::FETCH_ASSOC);
                                                                         Delete
                                                                     </a>
                                                                 <?php else: ?>
-                                                                    <a href="#" class="btn btn-sm btn-warning">View schedule</a>
+                                                                    <a href="#"
+                                                                        class="btn btn-sm btn-warning"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#viewScheduleModal<?= $appointment['id'] ?>">
+                                                                        View schedule & Chat
+                                                                    </a>
+                                                                    <div class="modal fade" id="viewScheduleModal<?= $appointment['id'] ?>" tabindex="-1" aria-labelledby="scheduleLabel<?= $appointment['id'] ?>" aria-hidden="true">
+                                                                        <div class="modal-dialog">
+                                                                            <div class="modal-content">
+                                                                                <!-- Modal Header -->
+                                                                                <div class="modal-header text-white">
+                                                                                    <h5 class="modal-title" id="scheduleLabel<?= $appointment['id'] ?>">Appointment Details</h5>
+                                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                                </div>
+
+                                                                                <!-- Modal Body -->
+                                                                                <div class="modal-body">
+                                                                                    <div class="mb-3">
+                                                                                        <p class="mb-1"><strong>📅 Scheduled Date & Time:</strong></p>
+                                                                                        <p class="text-muted"><?= htmlspecialchars(date('F d, Y - g:i A', strtotime($appointment['scheduled_date']))) ?></p>
+                                                                                    </div>
+
+                                                                                    <div class="mb-3">
+                                                                                        <p class="mb-1"><strong>📝 Type:</strong></p>
+                                                                                        <p class="text-muted"><?= $appointment['type'] === 'online' ? 'Online Counseling' : 'Face-to-Face Counseling' ?></p>
+                                                                                    </div>
+
+                                                                                    <div class="mb-3">
+                                                                                        <p class="mb-1"><strong>👨‍🏫 Counselor:</strong></p>
+                                                                                        <p class="text-muted"><?= htmlspecialchars($appointment['counselor_name']) ?></p>
+                                                                                    </div>
+
+                                                                                    <div class="mb-3">
+                                                                                        <p class="mb-1"><strong>🗨️ Why need counseling:</strong></p>
+                                                                                        <p class="text-muted"><?= htmlspecialchars($appointment['student_remarks']) ?></p>
+                                                                                    </div>
+
+                                                                                    <?php
+                                                                                    date_default_timezone_set('Asia/Manila');
+                                                                                    $now = new DateTime();
+                                                                                    $scheduled = new DateTime($appointment['scheduled_date']);
+                                                                                    ?>
+
+
+                                                                                    <!-- Conditional Message Based on Type -->
+                                                                                    <?php if ($appointment['type'] === 'online'): ?>
+                                                                                        <?php
+                                                                                        $appointment_id = $appointment['id'];
+                                                                                        $stmt = $conn->prepare("SELECT chat_status FROM tbl_chat_sessions WHERE appointment_id = ? ORDER BY sent_at DESC LIMIT 1");
+                                                                                        $stmt->execute([$appointment_id]);
+                                                                                        $last_chat = $stmt->fetch();
+
+                                                                                        $last_chat_status = $last_chat['chat_status'] ?? null;
+                                                                                        ?>
+                                                                                        <div class="alert alert-primary text-center mt-4">
+                                                                                            <?php if ($now >= $scheduled): ?>
+                                                                                                <strong>✅ Your online session is scheduled now.</strong><br>
+
+                                                                                                <div class="d-grid mt-3">
+                                                                                                    <?php if ($last_chat_status === 'ended'): ?>
+                                                                                                        <!-- Chat ended - show Chat History -->
+                                                                                                        <a href="session_appointment.php?id=<?= $appointment_id ?>" class="btn btn-secondary btn-lg">
+                                                                                                            Chat History
+                                                                                                        </a>
+                                                                                                    <?php else: ?>
+                                                                                                        <!-- Chat active or no chat yet - show Start Session -->
+                                                                                                        <a href="start_chat_session.php?id=<?= $appointment_id ?>" class="btn btn-success btn-lg">
+                                                                                                            Start Session
+                                                                                                        </a>
+                                                                                                    <?php endif; ?>
+                                                                                                </div>
+
+                                                                                            <?php else: ?>
+                                                                                                <strong>⏳ Your online counseling session is upcoming.</strong><br>
+                                                                                                Please return at the scheduled time and wait for the counselor to start.
+                                                                                            <?php endif; ?>
+                                                                                        </div>
+
+
+
+                                                                                    <?php else: ?>
+                                                                                        <div class="alert alert-primary text-center mt-4">
+                                                                                            <strong>📍 Face-to-Face Appointment</strong><br>
+                                                                                            <?php if ($now >= $scheduled): ?>
+                                                                                                <?php if ($appointment['status'] === 'Completed'): ?>
+                                                                                                    <div class="d-grid mt-3">
+                                                                                                        <span class="badge bg-success fs-6">✅ Completed</span>
+                                                                                                    </div>
+                                                                                                <?php else: ?>
+                                                                                                    <div class="d-grid mt-3">
+                                                                                                        <a href="completed_appointment.php?id=<?= $appointment['id'] ?>" class="btn btn-success btn-lg">
+                                                                                                            Mark as Completed
+                                                                                                        </a>
+                                                                                                    </div>
+                                                                                                <?php endif; ?>
+                                                                                            <?php endif; ?>
+                                                                                        </div>
+
+
+                                                                                    <?php endif; ?>
+
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
                                                                 <?php endif; ?>
                                                             </td>
                                                         </tr>
@@ -401,7 +527,6 @@ $appointments = $stmtAppointments->fetchAll(PDO::FETCH_ASSOC);
                     </section>
                 </div>
             </div>
-
         </div>
     </div>
 

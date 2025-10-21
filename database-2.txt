@@ -99,6 +99,18 @@ CREATE TABLE tbl_appointments (
     FOREIGN KEY (admin_id) REFERENCES tbl_admin(id)
 );
 
+CREATE TABLE tbl_chat_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    appointment_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    message TEXT NOT NULL,
+    sender_type VARCHAR(10) NOT NULL,
+    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    chat_status VARCHAR(10) NULL
+);
+
+
+
 -- 1. Admin
 INSERT INTO tbl_admin (profile_picture, gender, fullname, email, password, phone_number) VALUES
 ('https://cdn-icons-png.flaticon.com/512/3475/3475274.png', 'Female', 'Rina Restua', 'rina.restua@ub.edu.ph', '123456789', '09123456789');

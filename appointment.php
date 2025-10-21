@@ -320,56 +320,213 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
-                                            <table class="table table-striped" id="table1">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Requested At</th>
-                                                        <th>Type</th>
-                                                        <th>Counselor</th>
-                                                        <th>Remarks</th>
-                                                        <th>Status</th>
-                                                        <th>Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($appointments as $appointment): ?>
-                                                        <tr>
-                                                            <td><?= htmlspecialchars(date('Y-m-d h:i A', strtotime($appointment['requested_at']))) ?></td>
-                                                            <td>
-                                                                <?php if ($appointment['type'] === 'online'): ?>
-                                                                    <span style="color: green;">Online</span>
-                                                                <?php else: ?>
-                                                                    <span style="color: green;">Face to face</span>
-                                                                <?php endif; ?>    
-                                                            <td><?= htmlspecialchars($appointment['counselor_name']) ?></td>
-                                                            <td><?= htmlspecialchars($appointment['student_remarks']) ?></td>
-                                                            <td>
-                                                                <span class="badge bg-secondary"><?= htmlspecialchars(ucfirst($appointment['status'])) ?></span>
-                                                            </td>
-                                                            <td>
-                                                                <?php if ($appointment['status'] === 'Pending'): ?>
-                                                                    <a href="cancel_appointment.php?id=<?= $appointment['id'] ?>" 
-                                                                    class="btn btn-sm btn-danger"
-                                                                    onclick="return confirm('Are you sure you want to cancel this appointment?');">Cancel</a>
+  <?php date_default_timezone_set('Asia/Manila'); ?>
 
-                                                                <?php elseif ($appointment['status'] === 'Rejected'): ?>
-                                                                    <button 
-                                                                        class="btn btn-sm btn-primary view-remarks-btn" 
-                                                                        data-bs-toggle="modal" 
-                                                                        data-bs-target="#remarksModal"
-                                                                        data-remarks="<?= htmlspecialchars($appointment['admin_remarks']) ?>"
-                                                                        data-id="<?= $appointment['id'] ?>">
-                                                                        View counselor remarks
-                                                                    </button>
+<table class="table table-striped" id="table1">
+    <thead>
+        <tr>
+            <th>Scheduled Date & Time</th>
+            <th>Type</th>
+            <th>Counselor</th>
+            <th>Remarks</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
 
-                                                                <?php else: ?>
-                                                                    <a href="#" class="btn btn-sm btn-primary">View schedule</a>
-                                                                <?php endif; ?>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
+    <tbody>
+        <?php foreach ($appointments as $appointment): ?>
+            <?php
+            // Prepare data
+            $status = strtolower($appointment['status']);
+            $type = strtolower($appointment['type']);
+            $scheduled = new DateTime($appointment['scheduled_date'], new DateTimeZone('Asia/Manila'));
+            $now = new DateTime('now', new DateTimeZone('Asia/Manila'));
+
+            // Badge color
+            switch ($status) {
+                case 'pending': $badgeClass = 'bg-warning'; break;
+                case 'rejected': $badgeClass = 'bg-danger'; break;
+                case 'scheduled': $badgeClass = 'bg-info'; break;
+                case 'completed': $badgeClass = 'bg-success'; break;
+                default: $badgeClass = 'bg-secondary';
+            }
+            ?>
+            
+            <tr>
+                <!-- 🗓 Scheduled Date -->
+                <td><?= htmlspecialchars($scheduled->format('M d, Y - g:ia')) ?></td>
+
+                <!-- 📝 Type -->
+                <td>
+                    <span style="color: green;">
+                        <?= $type === 'online' ? 'Online' : 'Face-to-Face' ?>
+                    </span>
+                </td>
+
+                <!-- 👨‍🏫 Counselor -->
+                <td><?= htmlspecialchars($appointment['counselor_name']) ?></td>
+
+                <!-- 💬 Remarks -->
+                <td><?= htmlspecialchars($appointment['student_remarks']) ?></td>
+
+                <!-- 🏷 Status -->
+                <td>
+                    <span class="badge <?= $badgeClass ?>">
+                        <?= htmlspecialchars(ucfirst($appointment['status'])) ?>
+                    </span>
+                </td>
+
+                <!-- ⚙️ Action -->
+                <td>
+                    <?php if ($status === 'pending'): ?>
+                        <!-- Cancel Button -->
+                        <a href="cancel_appointment.php?id=<?= $appointment['id'] ?>"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('Are you sure you want to cancel this appointment?');">
+                           Cancel
+                        </a>
+
+                    <?php elseif ($status === 'rejected'): ?>
+                        <!-- Rejected Modal -->
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#remarksModal<?= $appointment['id'] ?>">
+                            View Counselor Remarks
+                        </button>
+
+                        <div class="modal fade" id="remarksModal<?= $appointment['id'] ?>" tabindex="-1" aria-labelledby="remarksLabel<?= $appointment['id'] ?>" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header text-white">
+                                        <h5 class="modal-title" id="remarksLabel<?= $appointment['id'] ?>">Counselor Remarks</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="text-secondary">
+                                            <?= htmlspecialchars($appointment['admin_remarks'] ?? 'No remarks provided.') ?>
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form method="POST" action="delete_appointment.php">
+                                            <input type="hidden" name="appointment_id" value="<?= $appointment['id'] ?>">
+                                            <button type="submit" class="btn btn-danger"
+                                                onclick="return confirm('Delete this appointment?');">
+                                                Delete
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    <?php elseif ($status === 'scheduled' || $status === 'completed'): ?>
+                        <!-- View Schedule Modal -->
+                        <button class="btn btn-sm btn-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#scheduleModal<?= $appointment['id'] ?>">
+                            View Schedule
+                        </button>
+
+                        <div class="modal fade" id="scheduleModal<?= $appointment['id'] ?>" tabindex="-1" aria-labelledby="scheduleLabel<?= $appointment['id'] ?>" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <!-- Modal Header -->
+                                    <div class="modal-header text-white">
+                                        <h5 class="modal-title" id="scheduleLabel<?= $appointment['id'] ?>">Appointment Details</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                    <!-- Modal Body -->
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <strong>📅 Scheduled Date & Time:</strong><br>
+                                            <p class="text-muted">
+                                                <?= $scheduled->format('F d, Y - g:i A') ?><br>
+                                                <span style="color: green;">Approved by <?= htmlspecialchars($appointment['counselor_name']) ?></span>
+                                            </p>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong>📝 Type:</strong><br>
+                                            <p class="text-muted">
+                                                <?= $type === 'online' ? 'Online Counseling' : 'Face-to-Face Counseling' ?>
+                                            </p>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong>👨‍🏫 Counselor:</strong><br>
+                                            <p class="text-muted"><?= htmlspecialchars($appointment['counselor_name']) ?></p>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <strong>🗨️ Your Remarks:</strong><br>
+                                            <p class="text-muted"><?= htmlspecialchars($appointment['student_remarks']) ?></p>
+                                        </div>
+
+                                        <?php if ($type === 'online'): ?>
+    <?php
+    // Get chat session status (latest)
+    $stmt = $conn->prepare("SELECT chat_status FROM tbl_chat_sessions WHERE appointment_id = ? ORDER BY sent_at DESC LIMIT 1");
+    $stmt->execute([$appointment['id']]);
+    $last_chat = $stmt->fetch();
+    ?>
+
+    <div class="alert alert-primary text-center mt-4">
+        <?php if ($now >= $scheduled): ?>
+            <?php
+            // 🧠 Logic breakdown:
+            // 1. If chat exists and status is active → Chat ongoing
+            // 2. If chat exists and status ended → Session completed
+            // 3. If no chat exists yet:
+            //    - If status is completed → show “please wait for counselor to start”
+            //    - Otherwise → normal “upcoming” message
+            ?>
+            <?php if ($last_chat && $last_chat['chat_status'] === 'active'): ?>
+                <strong>💬 Chat session is ongoing</strong><br>
+                <a href="user_session_appointment.php?id=<?= $appointment['id'] ?>" class="btn btn-sm btn-success mt-2">Enter Chat</a>
+            <?php elseif ($last_chat && $last_chat['chat_status'] === 'ended'): ?>
+                <strong>✅ Your online session is completed</strong><br>
+                <a href="user_session_appointment.php?id=<?= $appointment['id'] ?>" class="btn btn-sm btn-secondary mt-2">Check History</a>
+            <?php else: ?>
+                <?php if ($status === 'completed'): ?>
+                    <strong>💬 Your online session is now ready.</strong><br>
+                    Please wait for the counselor to start.<br>
+                    <a href="user_session_appointment.php?id=<?= $appointment['id'] ?>" class="btn btn-sm btn-success mt-2">Go to Session</a>
+                <?php else: ?>
+                    <strong>⏳ Your online counseling session is now.</strong><br>
+                    Please wait for the counselor to start the session.
+                <?php endif; ?>
+            <?php endif; ?>
+        <?php else: ?>
+            <strong>⏳ Your online counseling session is upcoming.</strong><br>
+            Please return at the scheduled time and wait for your counselor to start.
+        <?php endif; ?>
+    </div>
+<?php else: ?>
+    <div class="alert alert-primary text-center mt-4">
+        <?php if ($status === 'scheduled'): ?>
+            <strong>⏳ Please go to the COPWELL Office on your scheduled date and time.</strong><br>
+            <span>Your counselor will assist you upon arrival.</span>
+        <?php elseif ($status === 'completed'): ?>
+            <strong>✅ Your Face-to-Face appointment is completed.</strong>
+        <?php else: ?>
+            <strong>ℹ️ Your Face-to-Face appointment status is <?= htmlspecialchars($status) ?>.</strong>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
                                         </div>
                                     </div>
                                 </div>
@@ -382,27 +539,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
     </div>
 
-    <!-- Modal: Counselor Remarks -->
-<div class="modal fade" id="remarksModal" tabindex="-1" aria-labelledby="remarksModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header text-white">
-        <h5 class="modal-title" id="remarksModalLabel">Counselor Remarks</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p id="remarksContent" class="mb-3 text-secondary"></p>
-      </div>
-      <div class="modal-footer">
-        <form id="deleteForm" method="POST" action="delete_appointment.php">
-            <input type="hidden" name="appointment_id" id="appointmentId">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this appointment?');">Delete</button>
-        </form>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
 
     <script src="assets/dashboard/static/js/components/dark.js"></script>
     <script src="assets/dashboard/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>
@@ -414,16 +550,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <script src="assets/dashboard/extensions/parsleyjs/parsley.min.js"></script>
     <script src="assets/dashboard/static/js/pages/parsley.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-document.querySelectorAll('.view-remarks-btn').forEach(button => {
-    button.addEventListener('click', function () {
-        const remarks = this.getAttribute('data-remarks') || 'No remarks provided.';
-        const id = this.getAttribute('data-id');
-        document.getElementById('remarksContent').textContent = remarks;
-        document.getElementById('appointmentId').value = id;
-    });
-});
-</script>
 
     <!-- SWEETALERT SUCCESS -->
     <?php if (isset($_SESSION['success']) || isset($_SESSION['error'])): ?>
