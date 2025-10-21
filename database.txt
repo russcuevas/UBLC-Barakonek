@@ -89,7 +89,8 @@ CREATE TABLE tbl_appointments (
     student_id INT NOT NULL,
     admin_id INT NOT NULL,
     requested_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    scheduled_date DATE,
+    scheduled_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(100),
     status VARCHAR(100),
     student_remarks TEXT,
     admin_remarks TEXT,
@@ -409,6 +410,6 @@ INSERT INTO tbl_results (student_id, taken_at, depression_score, anxiety_score, 
 
 
 -- Appointment
-INSERT INTO tbl_appointments (student_id, admin_id, scheduled_date, status, student_remarks, admin_remarks) VALUES
-(1, 1, '2025-11-01', 'Scheduled', 'Feeling stressed lately, would like to talk.', 'Appointment confirmed.');
+INSERT INTO tbl_appointments (student_id, admin_id, scheduled_date, type, status, student_remarks, admin_remarks) VALUES
+(1, 1, '2025-11-01', 'online', 'Scheduled', 'Feeling stressed lately, would like to talk.', 'Appointment confirmed.');
 

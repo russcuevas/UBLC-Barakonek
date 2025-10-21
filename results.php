@@ -92,7 +92,7 @@ $results = $stmtResults->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 </div>
 
-                 <div class="sidebar-menu">
+                <div class="sidebar-menu">
                     <ul class="menu">
                         <li class="sidebar-title">Modules</li>
 
@@ -187,40 +187,34 @@ $results = $stmtResults->fetchAll(PDO::FETCH_ASSOC);
                     </div>
 
                     <section class="section">
-    <div class="card">
-        <div class="card-header"></div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table" id="table1">
-                    <thead>
-                        <tr>
-                            <th>Taken At</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($results)): ?>
-                            <?php foreach ($results as $row): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars((new DateTime($row['taken_at']))->format('F j, Y - g:ia')) ?></td>
-                                    <td>
-                                        <a href="view_result.php?result_id=<?= htmlspecialchars($row['id']) ?>" class="btn btn-outline-primary mt-2">
-                                            View Result
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="2" class="text-center">No results found.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</section>
+                        <div class="card">
+                            <div class="card-header"></div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table" id="table1">
+                                        <thead>
+                                            <tr>
+                                                <th>Taken At</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($results as $row): ?>
+                                                <tr>
+                                                    <td><?= htmlspecialchars((new DateTime($row['taken_at']))->format('F j, Y - g:ia')) ?></td>
+                                                    <td>
+                                                        <a href="view_result.php?result_id=<?= htmlspecialchars($row['id']) ?>" class="btn btn-outline-primary mt-2">
+                                                            View Result
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
                     <!-- Basic Tables end -->
                 </div>

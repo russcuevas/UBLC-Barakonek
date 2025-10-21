@@ -402,7 +402,7 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-12 col-md-6">
+                                <div class="col-12 col-md-12">
                                     <div class="card">
                                         <div class="card-header d-flex justify-content-between align-items-center">
                                             <h4 class="mb-0">Prone Gender</h4>
@@ -420,7 +420,7 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <!-- <div class="col-12 col-md-6">
                                     <div class="card">
                                         <div class="card-header d-flex justify-content-between align-items-center">
                                             <h4 class="mb-0">Prone Gender</h4>
@@ -437,7 +437,7 @@ $total_courses = $stmt_courses->fetch(PDO::FETCH_ASSOC)['total_courses'];
                                             <div id="chart-prone-gender"></div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                             <div class="row">
                                 <div class="col-12 col-md-12">

@@ -11,8 +11,6 @@ if (!isset($_SESSION['student_id'])) {
 // clean welcome sweetalert
 $fullname = $_SESSION['fullname'] ?? 'Student';
 $gender = $_SESSION['gender'] ?? 'male';
-// $prefix = strtolower($gender) === 'female' ? 'Ms,' : 'Mr,';
-// unset welcome sweetalert
 $show_welcome = false;
 if (empty($_SESSION['welcome_shown'])) {
     $show_welcome = true;
@@ -37,6 +35,28 @@ if ($studentData) {
     $department_name = 'N/A';
     $course_name     = 'N/A';
 }
+
+if (isset($_POST['change_password'])) {
+    $old_password = $_POST['old_password'];
+    $new_password = $_POST['new_password'];
+    $stmt = $conn->prepare("SELECT password FROM tbl_students WHERE id = ?");
+    $stmt->execute([$student_id]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($row && $old_password === $row['password']) {
+        $updateStmt = $conn->prepare("UPDATE tbl_students SET password = ?, updated_at = NOW() WHERE id = ?");
+        $updateStmt->execute([$new_password, $student_id]);
+
+        $_SESSION['success'] = "Password updated successfully.";
+    } else {
+        $_SESSION['error'] = "Old password is incorrect.";
+    }
+
+
+    header('Location: dashboard.php');
+    exit();
+}
+
 
 ?>
 <!DOCTYPE html>
@@ -196,10 +216,12 @@ if ($studentData) {
                                             ?>
                                             <p class="mb-1"><strong>Account Created:</strong> <?= $createdAtFormatted ?></p>
                                         </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                                <i class="bi bi-shield-lock-fill"></i> Change Password
+                                            </button>
+                                        </div>
 
-                                        <a href="#" class="btn btn-primary mt-2">
-                                            <i class="bi bi-pencil-square"></i> Edit Profile
-                                        </a>
                                     </div>
 
                                 </div>
@@ -207,6 +229,61 @@ if ($studentData) {
 
 
                         </div>
+
+                        <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="form" method="POST" action="" data-parsley-validate>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group mandatory mb-3">
+            <label for="old_password" class="form-label">Old Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="old_password"
+              id="old_password"
+              required
+              data-parsley-required-message="Old password is required."
+              data-parsley-minlength="6"
+              data-parsley-minlength-message="Old password must be at least 6 characters."
+            >
+          </div>
+
+          <div class="form-group mandatory mb-3">
+            <label for="new_password" class="form-label">New Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="new_password"
+              id="new_password"
+              required
+              data-parsley-required-message="New password is required."
+              data-parsley-minlength="6"
+              data-parsley-minlength-message="New password must be at least 6 characters."
+            >
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="row w-100">
+            <div class="col-12 d-flex justify-content-end">
+              <button type="submit" name="change_password" class="btn btn-success me-2">Update Password</button>
+              <button type="reset" data-bs-dismiss="modal" class="btn btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
 
                         <!-- Right Column: Placeholder -->
                         <div class="col-12 col-lg-6">
@@ -217,9 +294,9 @@ if ($studentData) {
                                 <div class="card-body">
                                     <p>The Depression Anxiety Stress Scales – 42 (DASS-42) is a 42-item self-report scale designed to measure the negative emotional states of depression, anxiety and stress in adults and older adolescents (17 years +). It is the long version of the DASS-21. It is a useful tool for routine outcome monitoring and can be used to assess the level of treatment response. </p>
                                     <div class="text-end">
-                                        <a href="examination_page.php" class="btn btn-primary mt-2">
+                                        <button id="takeExamBtn" class="btn btn-primary mt-2">
                                             <i class="bi bi-file-text-fill"></i> Take exam
-                                        </a>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -241,9 +318,30 @@ if ($studentData) {
 
 
     <!-- Need: Apexcharts -->
+    <script src="assets/dashboard/extensions/jquery/jquery.min.js"></script>
+
     <script src="assets/dashboard/extensions/apexcharts/apexcharts.min.js"></script>
     <script src="assets/dashboard/static/js/pages/dashboard.js"></script>
+    <script src="assets/dashboard/extensions/parsleyjs/parsley.min.js"></script>
+    <script src="assets/dashboard/static/js/pages/parsley.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('takeExamBtn').addEventListener('click', function() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to take this exam?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'examination_page.php';
+                }
+            });
+        });
+    </script>
+
     <?php if ($show_welcome): ?>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
